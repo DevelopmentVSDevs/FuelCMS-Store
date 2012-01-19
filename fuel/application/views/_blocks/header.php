@@ -44,7 +44,7 @@
 			</div>
 
 			<div class="logo">
-				<a href="<?=base_url()?>"><img src="<?=base_url()?>assets/images/logo.png"></a>
+				<a href="<?=base_url()?>">Logo</a>
 			</div>
 
 		</div>

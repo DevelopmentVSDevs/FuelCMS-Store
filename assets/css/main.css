@@ -30,7 +30,8 @@ footer, header, hgroup, menu, nav, section {
 }
 body {
 	color: #444;
-	background: url('../images/background.png') top #e2d6ac repeat-x;
+	background: #e2d6ac;
+	/*background: url('../images/background.png') top #e2d6ac repeat-x;*/
 	font-family: 'Droid Sans', sans-serif;
 	font-weight: lighter;
 	line-height: 1.5em;
@@ -74,7 +75,6 @@ h3 { font-size: 1.4em; line-height: 1.5em; font-family: Helvetica, Arial, Sans-s
 h4 { font-size: 1.4em; font-family: Georgia, Serif; color: #4e8b98;
  }
 h1.star { 
-	background: url('../images/star1.png') left no-repeat;
 	padding-left: 40px;
 	height: 34px;
 	padding-top: 15px;
@@ -94,7 +94,6 @@ h1.star {
 	padding: 20px;
 	text-align: left;
 	padding-bottom: 80px;
-	background: url('../images/deer-small.png') bottom no-repeat;
 }
 
 .inner-box-content ul {
@@ -161,7 +160,7 @@ input[type=text] {
 
 #wrapper {
 	width: 100%;
-	background: url('../images/body-background.jpg') top no-repeat;
+	background: #e2d6ac;
 	min-height: 600px;
 }
 #header_wrapper {
@@ -198,6 +197,10 @@ input[type=text] {
 	-moz-box-shadow: 0px 0px 10px #777;
 	-webkit-box-shadow: 0px 0px 10px #777;
 	box-shadow: 0px 0px 10px #777;
+}
+
+.breadcrumbs ul li {
+	display: inline-block;	
 }
 
 .content_text_left {
@@ -318,7 +321,6 @@ form ul li label {
 	width: 940px;
 	padding: 20px;
 	margin: 0px auto;
-	background: url('../images/footer-bg-1.jpg') right top no-repeat #718355;
 	color: #fff;
 	-moz-box-shadow: 0px 0px 10px #777;
 	-webkit-box-shadow: 0px 0px 10px #777;

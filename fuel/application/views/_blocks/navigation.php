@@ -1,7 +1,6 @@
 <?php
 
-$nav = array('home', 'about', 'RV rates', 'reservations', 'golf', 'resort map', 'events', 'invest', 'contact');
-
+$nav = array('home', 'shop', 'contact');
 
 ?>
 

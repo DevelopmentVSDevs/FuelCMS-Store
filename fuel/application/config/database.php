@@ -45,7 +45,7 @@ $db['default']['hostname'] = 'localhost';
 
 $db['default']['username'] = 'root';
 $db['default']['password'] = '';
-$db['default']['database'] = 'spokanervresort';
+$db['default']['database'] = 'fuelcmsstore';
 
 //$db['default']['username'] = 'halogen_dbuser';
 //$db['default']['password'] = 'ja**.x.x';
