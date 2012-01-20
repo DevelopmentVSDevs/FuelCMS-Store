@@ -1,49 +1,70 @@
-<h1>Shop</h1>
+<div class="content">
+        
+	<div class="page-header">
+		<h1>Shop</h1>
+	</div>
 
-<div class="breadcrumbs">
-	<?=$breadcrumb?>
-</div>
+	<div class="breadcrumbs">
+		<?=$breadcrumb?>
+	</div>
 
-<? if( $catalog ) : ?>
+	<div class="row">
+
 	
-	<? foreach($catalog as $catalog_name => $item) : ?>
+		<div class="span10">
+		
+			<? if( $catalog ) : ?>
+				
+				<? foreach($catalog as $catalog_name => $item) : ?>
 
-		<h3><a href="<?=base_url()?>shop/<?=strtolower(preg_replace("/ /", "_", $item['catalog_name']))?>"><?=$catalog_name?></a></h3>
-		<p><?=$item['catalog_description']?></p>
+					<h3><a href="<?=base_url()?>shop/<?=strtolower(preg_replace("/ /", "_", $item['catalog_name']))?>"><?=$catalog_name?></a></h3>
+					<p><?=$item['catalog_description']?></p>
 
-		<? if( ! empty($item['products'])) : ?>
-			<h2>Products</h2>
-			<? foreach($item['products'] as $product_name => $product) : ?>
-				<?=$product_name?><br/>
-			<? endforeach; ?>
+					<? if( ! empty($item['products'])) : ?>
+						<h2>Products</h2>
+						<? foreach($item['products'] as $product_name => $product) : ?>
+							<?=$product_name?><br/>
+						<? endforeach; ?>
 
-		<? endif; ?>
+					<? endif; ?>
 
-		<? if( ! empty($item['children'])) : ?>
+					<? if( ! empty($item['children'])) : ?>
 
-			<? foreach($item['children'] as $child_catalog_name => $child_item) : ?>
+						<? foreach($item['children'] as $child_catalog_name => $child_item) : ?>
 
-				<div class="catalog">
+							<div class="catalog">
 
-					<h3 class="catalog_name"><?=$child_catalog_name?></h3>
+								<h3 class="catalog_name"><?=$child_catalog_name?></h3>
 
-					<? if( $child_item['products']) : ?>
+								<? if( $child_item['products']) : ?>
 
-						<? foreach($child_item['products'] as $child_item_product) : ?>
-							
-							<? $this->load->module_view('store', 'product', array('product' => $child_item_product) ); ?>
+									<? foreach($child_item['products'] as $child_item_product) : ?>
+										
+										<? $this->load->module_view('store', 'product', array('product' => $child_item_product) ); ?>
+
+									<? endforeach; ?>
+
+								<? endif; ?>
+
+							</div>
+
 
 						<? endforeach; ?>
 
 					<? endif; ?>
 
-				</div>
+				<? endforeach; ?>
+
+			<? endif; ?>
 
 
-			<? endforeach; ?>
+		</div>
 
-		<? endif; ?>
 
-	<? endforeach; ?>
+		<div class="span4">
+			<h3>Secondary content</h3>
+		</div>
 
-<? endif; ?>
+	</div>
+
+</div>

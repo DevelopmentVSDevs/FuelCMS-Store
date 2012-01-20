@@ -39,9 +39,10 @@ class Shop extends CI_Controller {
 				$nav[$temp_uri_path] = ucfirst($label);
 			}
 		}
+		
 		$nav = array_reverse($nav);
 
-		$this->load->library('menu');
+		$this->load->library('menu', array('active_class'=>'on', 'container_tag_class' => 'breadcrumb', 'render_type' => 'collapsible'));
 		$this->breadcrumb = $this->menu->render($nav, $active, NULL, 'breadcrumb');
 	}
 	

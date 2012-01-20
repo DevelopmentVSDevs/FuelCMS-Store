@@ -15,11 +15,14 @@
 	<meta name="keywords" content="<?php echo fuel_var('meta_keywords')?>" />
 	<meta name="description" content="<?php echo fuel_var('meta_description')?>" />
 
+	<link rel="stylesheet" href="http://twitter.github.com/bootstrap/1.4.0/bootstrap.min.css">
+	<link href='http://fonts.googleapis.com/css?family=Droid+Sans:400,700' rel='stylesheet' type='text/css'>
+
+
 	<?php echo css('main'); ?>
 	<?php echo css($css); ?>
 
-	<link href='http://fonts.googleapis.com/css?family=Droid+Sans:400,700' rel='stylesheet' type='text/css'>
-	
+
 	<?php echo js('jquery, main'); ?>
 	<?php echo js($js); ?>
 	
@@ -33,28 +36,23 @@
 
 <body>
 
-
-<div id="wrapper">
-
-	<div id="header_wrapper">
-		<div id="header">
-
-			<div class="top_right">
-
-			</div>
-
-			<div class="logo">
-				<a href="<?=base_url()?>">Logo</a>
-			</div>
-
-		</div>
-
-
-	</div>
-
-	<div id="content_wrapper">
-
-		<div id="content">
+	<div class="topbar">
+      <div class="fill">
+        <div class="container">
+          <a class="brand" href="#">Project name</a>
 
 			<?=$this->load->view('_blocks/navigation');?>
+          
+          <form action="" class="pull-right">
+            <input class="input-small" type="text" placeholder="Username">
+            <input class="input-small" type="password" placeholder="Password">
+            <button class="btn" type="submit">Sign in</button>
+          </form>
+
+        </div>
+      </div>
+    </div>
+
+	 <div class="container">
+
 
