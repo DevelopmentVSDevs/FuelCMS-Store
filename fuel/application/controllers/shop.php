@@ -14,6 +14,8 @@ class Shop extends CI_Controller {
 		$uri = $this->uri->segment_array();
 		$nav = array();
 
+
+
 		// Active tag.
 		$active = $this->uri->uri_string();
 
@@ -42,26 +44,21 @@ class Shop extends CI_Controller {
 		
 		$nav = array_reverse($nav);
 
+		//print_r($nav);
+
 		$this->load->library('menu', array('active_class'=>'on', 'container_tag_class' => 'breadcrumb', 'render_type' => 'collapsible'));
 		$this->breadcrumb = $this->menu->render($nav, $active, NULL, 'breadcrumb');
 	}
 	
-	function _remap($catalog_name)
+	function _remap($vendor_name)
 	{
-		if( $catalog_name && $catalog_name != 'index' ) {
-			$vars['catalog'] = $this->fuel_store->get_catalog($catalog_name, TRUE, TRUE);
-			$vars['active_name'] = (string)urldecode(array_pop($this->uri->segment_array()));
-
-		} else {
-			$vars['catalog'] = $this->fuel_store->get_toplevel_catalog();
-		}
-
 
 		$vars['breadcrumb'] = $this->breadcrumb;
-		//echo "<pre>";
-		//print_r($vars);
-		//echo "</pre>";
-		//die();
+
+		// THIS IS THE CRUZ OF THE MODULE...
+		$vars['store'] = $this->fuel_store->getStore($vendor_name);
+
+
 
 		$page_init = array('location' => 'shop');
 		$this->load->module_library(FUEL_FOLDER, 'fuel_page', $page_init);
