@@ -50,14 +50,20 @@ class Shop extends CI_Controller {
 		$this->breadcrumb = $this->menu->render($nav, $active, NULL, 'breadcrumb');
 	}
 	
-	function _remap($vendor_name)
+	function _remap()
 	{
-
+        $columns = array(
+            2 => 'vendor.name', 'catalog.name', 'category.name', 'product.name'
+        );
+        $where = array();
+        foreach($this->uri->segment_array() as $i => $segment) {
+            if($i == 1 ) continue;
+            $where[$columns[$i]] = $segment;
+        }
 		$vars['breadcrumb'] = $this->breadcrumb;
 
 		// THIS IS THE CRUZ OF THE MODULE...
-		$vars['store'] = $this->fuel_store->getStore($vendor_name);
-
+		$vars['store'] = $this->fuel_store->getStore($where);
 
 
 		$page_init = array('location' => 'shop');
