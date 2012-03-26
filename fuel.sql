@@ -827,29 +827,3 @@ CREATE TABLE IF NOT EXISTS `space` (
 
 INSERT INTO `space` (`id`, `content`, `precedence`, `published`) VALUES
 (1, '<h1>Need some Props or Scenes?</h1>\n\n<p>Whether you are producing a commercial, creating a print ad campaign or reaching for the big ropes and directing an entire play, video or movie - If it includes Vintage Props & Scenes - you may want to check out our growing inventory of unique vintage items to include: Lamps, Small Handheld Props, Furniture, Linens, Pub, Kitchen, Travel, Picnic, & more from the early 1900''s through mid-century modern!</p>\n \n<p>We are in the process of creating an online inventory of our growing warehouse of vintage props – so in the meantime – feel free to contact us and tell us what you need or want – we just may have it.</p>\n\n<p>If you have items you believe would make great props – and want to make your ‘stuff’ famous – let us know! We buy great unique items. If we don''t have the items you are in search of, we will put our team to work and locate your specific item(s) in a Prop Search!</p>\n\n<p>What we''ll do...Meet with your team and go over story lines, concepts, timelines, goals and  then get to work!</p>\n\n<h3>Coming Winter 2011</h3>\n<p>We will open the VintageEvent Productions Studios that will allow us to bring you; Vintage Auctions & Estate Sales, Vintage Events, Flea Markets, Vintage Event Space (that you can rent), The Vintage Prop Warehouse, Scenery Division..and More!</p>\n \n\n<br/>\n<a class="button" href="<?=base_url()?>index.php/pdf/application.pdf">Contact Us!</a>\n<br/><br/>', 1, 'yes');
-
-DROP TABLE IF EXISTS `store_catalog`;
-CREATE TABLE IF NOT EXISTS `store_catalog` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `catalog_name` varchar(64) NOT NULL,
-  `catalog_description` text,
-  `created_at` datetime DEFAULT NULL,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=2 ;
-
-INSERT INTO `store_catalog` (`id`, `catalog_name`, `catalog_description`, `created_at`, `updated_at`) VALUES
-(1, 'Catalog One', 'This is the catalog ONE description. Pretty cool.', '0000-00-00 00:00:00', '0000-00-00 00:00:00');
-
-DROP TABLE IF EXISTS `store_product`;
-CREATE TABLE IF NOT EXISTS `store_product` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `catalog_id` int(11) NOT NULL,
-  `product_name` varchar(128) NOT NULL,
-  `product_description` varchar(1024) DEFAULT NULL,
-  `product_price` varchar(10) NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=2 ;
-
-INSERT INTO `store_product` (`id`, `catalog_id`, `product_name`, `product_description`, `product_price`) VALUES
-(1, 1, '2009 Cabernet Sauvignon', 'This is the best wine ever.', '20.00');
