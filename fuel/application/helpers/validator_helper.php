@@ -102,8 +102,7 @@ function has_one_of_these($args = null)
  */
 function valid_email($email)
 {
-    $return = preg_match("/[a-z0-9|_|-|\.]+\@[a-z0-9|\.|-]+\.[a-z]{2,3}$/i", $email);
-    return $return;
+    return ( ! preg_match("/^([a-z0-9\+_\-]+)(\.[a-z0-9\+_\-]+)*@([a-z0-9\-]+\.)+[a-z]{2,6}$/ix", $email)) ? FALSE : TRUE;
 }
  
 // --------------------------------------------------------------------
@@ -370,9 +369,9 @@ function is_of_file_type($fileName, $fileType)
  * @param	string	filename
  * @return	boolean
  */
-function valid_file_upload($fileName)
+function valid_file_upload($file_name)
 {
-	if($_FILES[$fileName]['error'] > 0)
+	if(empty($_FILES[$file_name]) OR $_FILES[$file_name]['error'] > 0)
 	{
 		return FALSE;
 	} 
@@ -826,6 +825,24 @@ function get_error($key = null)
 			return array_pop($GLOBALS[GLOBAL_ERRORS]);
 		}
 	}
+}
+
+
+// --------------------------------------------------------------------
+
+/**
+ * Get all global error messages
+ *
+ * @access	public
+ * @return	array
+ */
+function get_errors()
+{
+	if (defined('GLOBAL_ERRORS') AND !empty($GLOBALS[GLOBAL_ERRORS]))
+	{
+		return $GLOBALS[GLOBAL_ERRORS];
+	}
+	return NULL;
 }
 
 /* End of file validator_helper.php */

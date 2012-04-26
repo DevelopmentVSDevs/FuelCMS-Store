@@ -1,12 +1,11 @@
-#Options +FollowSymLinks
-
+Options +FollowSymLinks
 <IfModule mod_rewrite.c>
 RewriteEngine On
 RewriteBase /
 
 <Files .*>
-Order Deny,Allow
-Deny From All
+	Order Deny,Allow
+	Deny From All
 </Files>
 
 # Allow asset folders through
@@ -21,4 +20,4 @@ RewriteCond %{REQUEST_FILENAME} !-d
 
 RewriteRule .* index.php/$0 [L]
 </IfModule>
-#Options -Indexes
+Options -Indexes

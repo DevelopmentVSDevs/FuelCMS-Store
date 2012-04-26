@@ -46,6 +46,13 @@ $config['fuel_mode'] = 'views';
 // used for system emails. Can be overwritten by MY_fuel.php
 $config['domain'] = $_SERVER['SERVER_NAME'];
 
+// the page to redirect to AFTER logging in
+$config['login_redirect'] = $config['fuel_path'].'dashboard';
+
+// the page to redirect to AFTER logging out. . Use the special value :last to redirect to the last page you were on.
+//$config['logout_redirect'] = $config['fuel_path'].'login'; // to take you back to the login page instead of the last page you were on
+$config['logout_redirect'] = ':last';
+
 // used for system emails
 $config['from_email'] = 'admin@'.$config['domain'];
 
@@ -148,7 +155,6 @@ $config['fuel_javascript'] = array(
 	'jquery/plugins/jquery.checksave',
 	'jquery/plugins/jquery.form',
 	'jquery/plugins/jquery.treeview.min',
-	'jquery/plugins/jquery.cookie',
 	'jquery/plugins/jquery.hotkeys',
 	'jquery/plugins/jquery.cookie',
 	'jquery/plugins/jquery.fillin',
@@ -156,7 +162,7 @@ $config['fuel_javascript'] = array(
 	'jquery/plugins/jquery-ui-1.8.4.custom.min',
 	'jquery/plugins/jquery.disable.text.select.pack',
 	'jquery/plugins/jquery.supercomboselect',
-	'jquery/plugins/jquery.MultiFile.pack',
+	'jquery/plugins/jquery.MultiFile',
 	'jquery/plugins/jquery.tablednd.js',
 	'editors/markitup/jquery.markitup.pack',
 	'editors/markitup/jquery.markitup.set',

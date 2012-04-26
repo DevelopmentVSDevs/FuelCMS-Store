@@ -36,6 +36,18 @@ They can be overwritten in the <dfn>application/config/MY_fuel.ph</dfn>p file:</
 			</td>
 		</tr>
 		<tr>
+			<td><strong>login_redirect</strong></td>
+			<td>fuel/dashboard</td>
+			<td>None</td>
+			<td>The page to redirect to AFTER logging in.</td>
+		</tr>
+		<tr>
+			<td><strong>logout_redirect</strong></td>
+			<td>:last</td>
+			<td>None</td>
+			<td>the page to redirect to AFTER logging out. Use the special value <strong>:last</strong> to redirect to the last page you were on.</td>
+		</tr>
+		<tr>
 			<td><strong>domain</strong></td>
 			<td>$_SERVER['SERVER_NAME']</td>
 			<td>None</td>
@@ -48,7 +60,7 @@ They can be overwritten in the <dfn>application/config/MY_fuel.ph</dfn>p file:</
 			<td>Used for system emails.</td>
 		</tr>
 		<tr>
-			<td><strong>domain</strong></td>
+			<td><strong>fuel_path</strong></td>
 			<td>fuel/</td>
 			<td>None</td>
 			<td>Path to the fuel admin from the web base directory.</td>
@@ -184,12 +196,6 @@ array(
 			<td>Max height for asset images beign uploaded.</td>
 		</tr>
 		<tr>
-			<td><strong>assets_upload_max_height</strong></td>
-			<td>768</td>
-			<td>None</td>
-			<td>Max height for asset images beign uploaded.</td>
-		</tr>
-		<tr>
 			<td><strong>fuel_javascript</strong></td>
 			<td>
 <pre>
@@ -207,7 +213,6 @@ array(
 	'jquery/plugins/jquery.checksave',
 	'jquery/plugins/jquery.form',
 	'jquery/plugins/jquery.treeview.min',
-	'jquery/plugins/jquery.cookie',
 	'jquery/plugins/jquery.hotkeys',
 	'jquery/plugins/jquery.cookie',
 	'jquery/plugins/jquery.fillin',
@@ -296,14 +301,15 @@ array('blog', 'tools')
 			<td><strong>nav</strong></td>
 			<td>
 <pre>
-// Dashboard will always be there
+
+// site... Dashboard will always be there
 $config['nav']['site'] = array(
-	'dashboard' => lang('nav_dashboard'),
-	'pages' => lang('nav_pages'),
-	'blocks' => lang('nav_blocks'),
-	'navigation' => lang('nav_navigation'),
-	'assets' => lang('nav_assets'),
-	'sitevariables' => lang('nav_sitevariables')
+	'dashboard' => lang('module_dashboard'),
+	'pages' => lang('module_pages'),
+	'blocks' => lang('module_blocks'),
+	'navigation' => lang('module_navigation'),
+	'assets' => lang('module_assets'),
+	'sitevariables' => lang('module_sitevariables')
 	);
 
 // if set to auto, then it will automatically include all in MY_fuel_modules.php

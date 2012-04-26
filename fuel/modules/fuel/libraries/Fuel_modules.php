@@ -5,6 +5,7 @@ class Fuel_modules {
 	protected $_modules = array();
 	protected $_allowed = array();
 	protected $_cached = array();
+	protected $_overwrites = NULL;
 	
 	function __construct($params = array())
 	{
@@ -76,15 +77,17 @@ class Fuel_modules {
 				'delete' => '_layouts/module_delete'),
 			'permission' => $module,
 			'js_controller' => 'BaseFuelController',
+			'js_controller_path' => '',
 			'js_controller_params' => array(),
 			'js_localized' => array(),
 			'js' => '',
 			'edit_method' => 'find_one_array',
-			'instructions' => lang('module_instructions_default', $module),
+			'instructions' => NULL,
 			'filters' => array(),
 			'archivable' => TRUE,
 			'table_headers' => array(),
 			'table_actions' => array('EDIT', 'VIEW', 'DELETE'),
+			'table_row_limits' => array('25' => '25', '50' => '50', '100' => '100'),
 			'item_actions' => array('save', 'view', 'publish', 'activate', 'delete', 'duplicate', 'create'),
 			'list_actions' => array(),
 			'rows_selectable' => TRUE,
@@ -99,6 +102,7 @@ class Fuel_modules {
 			'sanitize_images' => TRUE,
 			'displayonly' => FALSE,
 			'language' => '',
+			'hidden' => FALSE,
 			);
 		$return = array();
 		$params = $this->_modules[$module];
@@ -121,13 +125,43 @@ class Fuel_modules {
 			$return['module_name'] = $module_name;
 		}
 		
+		// set instructions
+		if (empty($return['instructions']))
+		{
+			$return['instructions'] = lang('module_instructions_default', strtolower($return['module_name']));
+		}
+		
+		// set proper jqxController name
+		if (is_array($return['js_controller']))
+		{
+			if (empty($return['js_controller_path']))
+			{
+				$return['js_controller_path'] = js_path('', key($return['js_controller']));
+			}
+			$return['js_controller'] = current($return['js_controller']);
+		}
+		else if (is_string($return['js_controller']) AND strpos($return['js_controller'], '.') === FALSE)
+		{
+			$return['js_controller'] = 'fuel.controller.'.$return['js_controller'];
+		}
+
+		// convert slashes to jqx object periods
+		$return['js_controller'] = str_replace('/', '.', $return['js_controller']);
+		
+		// set the base path to the controller file if still empty
+		if (empty($return['js_controller_path']))
+		{
+			$return['js_controller_path'] = js_path('', FUEL_FOLDER);
+		}
+		
+		
+		
 		if ($create_action_name = lang('module_'.$module.'_create'))
 		{
 			$return['create_action_name'] = $create_action_name;
 		}
 		
 		$_cached[$module] = $return;
-		
 		return $return;
 		
 	}
@@ -180,7 +214,17 @@ class Fuel_modules {
 				$CI->config->module_load($module, $module.'_fuel_modules');
 				include(MODULES_PATH.$module.'/config/'.$module.'_fuel_modules.php');
 				$module_init = array_merge($module_init, $config['modules']);
-				
+			}
+		}
+		
+		
+		// now must loop through the array and overwrite any values... array_merge_recursive won't work'
+		$overwrites = $this->module_overwrites();
+		if (!empty($overwrites) AND is_array($overwrites))
+		{
+			foreach($overwrites as $module => $val)
+			{
+				$module_init[$module] = array_merge($module_init[$module], $val);
 			}
 		}
 		return $module_init;
@@ -247,6 +291,34 @@ class Fuel_modules {
 			
 		}
 		return $pages;
+	}
+
+	// --------------------------------------------------------------------
+	
+	/**
+	 * Module overwrites
+	 *
+	 * @access	public
+	 * @return	string
+	 */	
+	function module_overwrites()
+	{
+		if (isset($this->_overwrites))
+		{
+			return $this->_overwrites;
+		}
+		
+		@include(APPPATH.'config/MY_fuel_modules.php');
+		
+		if (isset($config['module_overwrites']))
+		{
+			$this->_overwrites = $config['module_overwrites'];
+		}
+		else
+		{
+			$this->_overwrites = array();
+		}
+		return $this->_overwrites;
 	}
 	
 	// --------------------------------------------------------------------

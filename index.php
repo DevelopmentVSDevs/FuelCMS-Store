@@ -68,7 +68,7 @@ if (defined('STDIN'))
 	switch (ENVIRONMENT)
 	{
 		case 'development':
-			error_reporting(1);
+			ini_set('display_errors', 1);
 			error_reporting(E_ALL);
 		break;
 	
@@ -224,6 +224,7 @@ if (defined('STDIN'))
 
 		define('APPPATH', BASEPATH.$application_folder.'/');
 	}
+
 /*
  * --------------------------------------------------------------------
  * LOAD THE BOOTSTRAP FILE
@@ -233,5 +234,6 @@ if (defined('STDIN'))
  *
  */
 require_once BASEPATH.'core/CodeIgniter'.EXT;
+
 /* End of file index.php */
 /* Location: ./index.php */

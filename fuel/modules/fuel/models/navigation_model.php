@@ -17,13 +17,25 @@ class Navigation_model extends Base_module_model {
 
 	function find_by_location($location, $group_id = 1)
 	{
+		$where = array();
+		$where[$this->_tables['navigation'].'.location'] = $location;
 		if (!empty($group_id))
 		{
-			$data = $this->find_one_array(array($this->_tables['navigation'].'.location' => $location, 'group_id' => $group_id));
+			if (is_string($group_id))
+			{
+				$where[$this->_tables['navigation_groups'].'.name'] = $group_id;
+			}
+			else
+			{
+				$where['group_id'] = (int)$group_id;
+			}
+			$data = $this->find_one_array($where);
+			
 		}
 		else
 		{
-			$data = $this->find_all_array(array($this->_tables['navigation'].'.location' => $location));
+			$data = $this->find_all_array($where);
+			
 		}
 		return $data;
 	}
@@ -203,18 +215,35 @@ class Navigation_model extends Base_module_model {
 	}*/
 	
 	// validation method
-	function is_new_navigation($nav_key, $group_id, $parent_id)
+	function is_new_navigation($nav_key, $group_id)
 	{
 		if (empty($group_id)) return FALSE;
-		$data = $this->find_one_array(array('group_id' => $group_id, 'nav_key' => $nav_key, 'parent_id' => $parent_id));
+		$data = $this->find_one_array(array('group_id' => $group_id, 'nav_key' => $nav_key));
 		if (!empty($data)) return FALSE;
 		return TRUE;
 	}
 
 	// validation method
-	function is_editable_navigation($nav_key, $group_id, $parent_id, $id)
+	function is_editable_navigation($nav_key, $group_id, $id)
 	{
-		$data = $this->find_one_array(array('group_id' => $group_id, 'nav_key' => $nav_key, 'parent_id' => $parent_id));
+		$data = $this->find_one_array(array('group_id' => $group_id, 'nav_key' => $nav_key));
+		if (empty($data) || (!empty($data) && $data['id'] == $id)) return TRUE;
+		return FALSE;
+	}
+	
+	// validation method
+	function is_new_location($location, $group_id, $parent_id)
+	{
+		if (empty($group_id)) return FALSE;
+		$data = $this->find_one_array(array('group_id' => $group_id, 'location' => $location, 'parent_id' => $parent_id));
+		if (!empty($data)) return FALSE;
+		return TRUE;
+	}
+
+	// validation method
+	function is_editable_location($location, $group_id, $parent_id, $id)
+	{
+		$data = $this->find_one_array(array('group_id' => $group_id, 'location' => $location, 'parent_id' => $parent_id));
 		if (empty($data) || (!empty($data) && $data['id'] == $id)) return TRUE;
 		return FALSE;
 	}
@@ -226,9 +255,9 @@ class Navigation_model extends Base_module_model {
 		// if the path is local, then we clean it
 		if (!is_http_path($values['location']))
 		{
-			$values['location'] = str_replace('/', '___', $values['location']);
+			$values['location'] = str_replace(array('/', '#'), array('____', '___'), $values['location']);
 			$values['location'] = url_title($values['location']);
-			$values['location'] = str_replace('___', '/', $values['location']);
+			$values['location'] = str_replace(array('____', '___'), array('/', '#'), $values['location']);
 		}
 		return $values;
 	}
@@ -240,17 +269,20 @@ class Navigation_model extends Base_module_model {
 		
 		if (!empty($values['id']))
 		{
-			$this->add_validation('nav_key', array(&$this, 'is_editable_navigation'), lang('error_val_empty_or_already_exists', lang('form_label_nav_key')), array($values['group_id'], $values['parent_id'], $values['id']));
+			$this->add_validation('nav_key', array(&$this, 'is_editable_navigation'), lang('error_val_empty_or_already_exists', lang('form_label_nav_key')), array($values['group_id'], $values['id']));
+			$this->add_validation('location', array(&$this, 'is_editable_location'), lang('error_val_empty_or_already_exists', lang('form_label_location')), array($values['group_id'], $values['parent_id'], $values['id']));
 		}
 		else
 		{
-			$this->add_validation('nav_key', array(&$this, 'is_new_navigation'), lang('error_val_empty_or_already_exists', lang('form_label_nav_key')), array($values['group_id'], $values['parent_id']));
+			$this->add_validation('nav_key', array(&$this, 'is_new_navigation'), lang('error_val_empty_or_already_exists', lang('form_label_nav_key')), array($values['group_id']));
+			$this->add_validation('location', array(&$this, 'is_new_location'), lang('error_val_empty_or_already_exists', lang('form_label_location')), array($values['group_id'], $values['parent_id']));
 		}
 		return $values;
 	}
 	
 	function _common_query()
 	{
+		parent::_common_query();
 		$this->db->select($this->_tables['navigation'].'.*, '.$this->_tables['navigation_groups'].'.id group_id, '.$this->_tables['navigation_groups'].'.name group_name');
 		$this->db->join($this->_tables['navigation_groups'], $this->_tables['navigation_groups'].'.id='.$this->_tables['navigation'].'.group_id', 'left');
 		$this->db->order_by('precedence, location asc');

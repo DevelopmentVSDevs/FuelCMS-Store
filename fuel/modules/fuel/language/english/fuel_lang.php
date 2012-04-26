@@ -42,6 +42,7 @@ $lang['error_upload'] = 'There was an error uploading the your file.';
 $lang['error_create_nav_group'] = 'Please create a Navigation Group';
 $lang['error_requires_string_value'] = 'The name field should be a string value';
 $lang['error_missing_params'] = 'You are missing parameters to view this page';
+$lang['error_invalid_method'] = 'Invalid method name';
 
 
 /*
@@ -149,6 +150,7 @@ $lang['cannot_determine_module'] = "Cannot determine module.";
 $lang['incorrect_route_to_module'] = "Incorrect route to access this module.";
 $lang['data_saved'] = 'Data has been saved.';
 $lang['data_deleted'] = 'Data has been deleted.';
+$lang['data_not_deleted'] = 'Some or all data couldn\'t be deleted.';
 $lang['no_data'] = 'No data to display.';
 $lang['no_preview_path'] = 'There is no preview path assigned to this module.';
 $lang['delete_item_message'] = 'You are about to delete the item:';
@@ -226,7 +228,25 @@ $lang['form_label_asset_folder'] = 'Asset Folder';
 $lang['form_label_new_file_name'] = 'New file name';
 $lang['form_label_subfolder'] = 'Subfolder';
 $lang['form_label_overwrite'] = 'Overwrite';
+$lang['form_label_create_thumb'] = 'Create thumb';
+$lang['form_label_maintain_ratio'] = 'Maintain ratio';
+$lang['form_label_overwrite'] = 'Overwrite';
+$lang['form_label_width'] = 'Width';
+$lang['form_label_height'] = 'Height';
+$lang['form_label_master_dimension'] = 'Master dimension';
 $lang['assets_upload_action'] = 'Upload';
+$lang['assets_comment_asset_folder'] = 'The asset folder that it will be uploaded to';
+$lang['assets_comment_filename'] = 'If no name is provided, the filename that already exists will be used.';
+$lang['assets_comment_subfolder'] = 'Will attempt to create a new subfolder to place your asset.';
+$lang['assets_comment_overwrite'] = 'Overwrite a file with the same name. If unchecked, a new file will be uploaded with a version number appended to the end of it.';
+$lang['assets_heading_image_specific'] = 'Image Specific';
+$lang['assets_comment_thumb'] = 'Create a thumbnail of the image.';
+$lang['assets_comment_aspect_ratio'] = 'Maintain the aspect ratio of the image if resized.';
+$lang['assets_comment_width'] = 'Will change the width of an image to the desired amount.';
+$lang['assets_comment_height'] = 'Will change the height of an image to the desired amount.';
+$lang['assets_comment_master_dim'] = 'Specifies the master dimension to use for resizing. If the source image size does not allow perfect resizing to those dimensions, this setting determines which axis should be used as the hard value. "auto" sets the axis automatically based on whether the image is taller then wider, or vice versa.';
+
+
 
 
 /*
@@ -267,7 +287,7 @@ $lang['perm_assets'] = 'Assets';
 $lang['perm_blocks'] = 'Manage Blocks';
 $lang['perm_blog/categories'] = 'Blog Categories';
 $lang['perm_blog/comments'] = 'Blog Comments';
-$lang['perm_blog/links'] = 'Blog Comments';
+$lang['perm_blog/links'] = 'Blog Links';
 $lang['perm_blog/posts'] = 'Blog Posts';
 $lang['perm_blog/settings'] = 'Blog Settings';
 $lang['perm_blog/users'] = 'Blog Authors';
@@ -407,7 +427,7 @@ $lang['required_text'] = 'required fields';
 | Layouts
 |--------------------------------------------------------------------------
 */
-$lang['layout_fiel_main_copy'] = 'This is the main layout to be used for your site.';
+$lang['layout_field_main_copy'] = 'This is the main layout to be used for your site.';
 $lang['layout_field_page_title'] = 'Page title';
 $lang['layout_field_meta_description'] = 'Meta description';
 $lang['layout_field_meta_keywords'] = 'Meta keywords';
@@ -420,7 +440,6 @@ $lang['layout_field_301_redirect_copy'] = 'This layout will do a 301 redirect to
 $lang['layout_field_sitemap_xml_copy'] = 'This layout is used to generate a sitemap.';
 $lang['layout_field_none_copy'] = 'This layout is the equivalent of having no layout assigned.';
 
-$lang['layout_field_main_copy'] = 'This is the main layout to be used for your site.';
 $lang['layout_field_frequency'] = 'Frequency';
 $lang['layout_field_frequency_always'] = 'always';
 $lang['layout_field_frequency_hourly'] = 'hourly';

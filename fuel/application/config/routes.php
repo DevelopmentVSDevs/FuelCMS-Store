@@ -41,7 +41,6 @@ $route['404_override'] = 'fuel/page_router';
 */ 
 //$route['sitemap.xml'] = 'sitemap_xml';
 
-$route['shop/:any'] = 'shop/';
 include(MODULES_PATH.'/fuel/config/fuel_routes.php');
 
 /* End of file routes.php */

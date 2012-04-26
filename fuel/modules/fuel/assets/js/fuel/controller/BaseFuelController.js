@@ -83,7 +83,7 @@ fuel.controller.BaseFuelController = jqx.lib.BaseController.extend({
 		}
 		
 		var ids = [];
-		$('#left_panel_inner h3').each(function(i){
+		$('#fuel_left_panel_inner h3').each(function(i){
 			var id = $(this).parent().attr('id');
 			ids.push(id);
 		});
@@ -368,8 +368,8 @@ fuel.controller.BaseFuelController = jqx.lib.BaseController.extend({
 		comboOpts.valuesEmptyString = this.lang('comboselect_values_empty');
 		comboOpts.selectedEmptyString = this.lang('comboselect_selected_empty');
 		comboOpts.defaultSearchBoxString = this.lang('comboselect_filter');
-		var sortingId = 'sorting_' + $(elem).attr('id');
-		if ($('#' + sortingId).size()){
+		var sortingId = $(elem).next().attr('id');
+		if (sortingId && $('#' + sortingId).size()){
 			comboOpts.autoSort = false;
 			comboOpts.isSortable = true;
 			comboOpts.selectedOrdering = eval(unescape($('#' + sortingId).val()));
@@ -664,7 +664,7 @@ fuel.controller.BaseFuelController = jqx.lib.BaseController.extend({
 					}
 					$('#cke_' + ckId).hide();
 					$elem.css({visibility: 'visible'}).closest('.html').css({position: 'static'}); // used instead of show/hide because of issue with it not showing textarea
-					//$elem.closest('.html').show();
+					
 					
 					$('#' + ckId + '_viewsource').text(_this.lang('btn_view_editor'));
 					
@@ -711,9 +711,6 @@ fuel.controller.BaseFuelController = jqx.lib.BaseController.extend({
 			})
 		});
 		
-		
-		
-		
 	},
 	
 	_initLinkedFields : function(context){
@@ -734,23 +731,23 @@ fuel.controller.BaseFuelController = jqx.lib.BaseController.extend({
 					}
 					
 				});
-				
-				// setup ajax on blur to do server side processing if no javascript function exists
-				if (!func){
-					$('#' + masterId).blur(function(e){
-						var url = _this.modulePath + '/process_linked';
-						var parameters = {
-							master_field:master, 
-							master_value:$(this).val(), 
-							slave_field:slave
-						};
-						$.post(url, parameters, function(response){
-							$('#' + slaveId).val(response);
-						});
-					});
-				}
-				
 			}
+			
+			// setup ajax on blur to do server side processing if no javascript function exists
+			if (!func){
+				$('#' + masterId).blur(function(e){
+					var url = _this.modulePath + '/process_linked';
+					var parameters = {
+						master_field:master, 
+						master_value:$(this).val(), 
+						slave_field:slave
+					};
+					$.post(url, parameters, function(response){
+						$('#' + slaveId).val(response);
+					});
+				});
+			}
+			
 		}
 		
 		// needed for enclosure
@@ -812,7 +809,7 @@ fuel.controller.BaseFuelController = jqx.lib.BaseController.extend({
 		$('.view_action').click(function(){
 			$('#viewpage_modal').jqmShow();
 			var page = $(this).attr('href');
-			var iframe = '<a href="#" id="viewpage_close">' + _this.lang('viewpage_close') + '</a><iframe id="viewpage_iframe" src="' + page + '"></iframe>';
+			var iframe = '<div id="viewpage_btns"><a href="' + page + '" id="viewpage_new_page" class="viewpage_btn" target="_blank">' + _this.lang('viewpage_new_window') + '</a><a href="#" id="viewpage_close" class="viewpage_btn">' + _this.lang('viewpage_close') + '</a></div><iframe id="viewpage_iframe" src="' + page + '"></iframe>';
 			$('#viewpage_modal').empty().append(iframe);
 			
 			$('#viewpage_close').click(function(){
@@ -859,6 +856,7 @@ fuel.controller.BaseFuelController = jqx.lib.BaseController.extend({
 					
 					$form.ajaxSubmit({
 						success: function(html){
+							html = $.trim(html);
 							if ($(html).is('error')){
 								_this.displayError($form, html);
 							} else if (callback){
@@ -875,6 +873,7 @@ fuel.controller.BaseFuelController = jqx.lib.BaseController.extend({
 						$form.find('.__fuel_inline_action__').val('delete');
 						$form.ajaxSubmit({
 							success: function(html){
+								html = $.trim(html);
 								if ($(html).is('error')){
 									displayError($form, html);
 								} else if (callback){
@@ -921,8 +920,10 @@ fuel.controller.BaseFuelController = jqx.lib.BaseController.extend({
 		_this.tableLoaded = true;
 		var publishUnpublish = function(__this, publishOrUnpublish){
 			var id = $(__this).parent().find('.toggle_' + publishOrUnpublish).attr('id').substr(14);
-			var params = { id: id, published : ((publishOrUnpublish == 'publish') ? 'yes' : 'no')};
-			
+			var $form = $(__this).closest('form');
+			var params = $form.formSerialize(true);
+			params['id'] = id;
+			params['published'] = ((publishOrUnpublish == 'publish') ? 'yes' : 'no')
 			$.post(_this.modulePath + '/' + publishOrUnpublish + '/' + id, params, function(html){
 				_this.redrawTable(true, false);
 			});

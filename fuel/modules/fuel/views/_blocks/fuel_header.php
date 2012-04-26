@@ -15,14 +15,14 @@
 	<?=js('jquery/jquery', 'fuel')?>
 	<?=js('jqx/jqx', 'fuel')?>
 	<?=js($this->config->item('fuel_javascript', 'fuel'), 'fuel')?>
-	<?php if (!empty($js)) { echo js($js); } ?>
+	<?php foreach($js as $m => $j) : echo js(array($m => $j)); endforeach; ?>
 
 	<?php if (!empty($this->js_controller)) : ?> 
 	<script type="text/javascript">
 		<?php if ($this->js_controller != 'BaseFuelController') : ?>
 		jqx.addPreload('fuel.controller.BaseFuelController');
 		<?php endif; ?>
-		jqx.init('fuel.controller.<?=$this->js_controller?>', <?=json_encode($this->js_controller_params)?> );
+		jqx.init('<?=$this->js_controller?>', <?=json_encode($this->js_controller_params)?>, '<?=$this->js_controller_path?>');
 	</script>
 	<?php endif; ?>
 
@@ -43,8 +43,22 @@
 		<div id="fuel_left_panel_inner">
 			
 <?php 
+	// Get all modules
+	$modules = $this->fuel_modules->get_modules();
+	$mods = array();
+        
+	foreach($modules as $mod)
+	{
+		if(isset($mod['module_uri']))
+		{
+			// Index modules by their uri so we know which module belongs to a specific nav item
+			$mods[$mod['module_uri']] = isset($mod['permission']) ? $mod['permission'] : '';
+		}
+	}
+
 	foreach($nav as $section => $nav_items)
 	{
+            
 		if (is_array($nav_items))
 		{
 			$header_written = FALSE;
@@ -53,6 +67,9 @@
 			{
 				$segments = explode('/', $key);
 				$url = $key;
+
+				// Check for a specific module's permission                                
+				$key = isset($mods[$key]) ? $mods[$key] : $key;
 				
 				// Convert wild-cards to RegEx
 				$nav_selected = str_replace(':any', '.+', str_replace(':num', '[0-9]+', $this->nav_selected));
@@ -105,3 +122,4 @@
 		</div>
 	</div>
 	<div id="main_panel">
+

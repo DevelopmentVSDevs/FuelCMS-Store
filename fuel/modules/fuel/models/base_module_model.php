@@ -33,6 +33,7 @@ class Base_module_model extends MY_Model {
 	public $filter_value = NULL; // the values of the filters
 	public $filter_join = 'or'; // how to combine the filters in the query (and or or)
 	public $parsed_fields = array(); // fields to automatically parse
+	public $upload_data = array(); // data about all uploaded files
 	protected $_tables = array(); // fuel tables
 	
 	/**
@@ -75,10 +76,10 @@ class Base_module_model extends MY_Model {
 		// load in the module configuration file
 		if (!empty($module) && $module != FUEL_FOLDER)
 		{
-			$CI->config->module_load($module, $module);
-			if ($CI->config->item('tables', $module))
+			$CI->config->module_load($module, $module, FALSE);
+			if ($CI->config->item('tables'))
 			{
-				$module_tables = $CI->config->item('tables', $module);
+				$module_tables = $CI->config->item('tables');
 			}
 		}
 		
@@ -201,13 +202,29 @@ class Base_module_model extends MY_Model {
 				{
 					if (strpos($key, '.') === FALSE) $key = $this->table_name.'.'.$key;
 					
-					if ($this->filter_join == 'and') 
+					if (strtolower($this->filter_join) == 'and') 
 					{
-						$this->db->like('LOWER('.$key.')', strtolower($val), 'both');
+						// do a direct match if the values are integers and have _id in them
+						if (preg_match('#_id#', $key) AND is_numeric($val))
+						{
+							$this->db->where(array($key => $val));
+						}
+						else
+						{
+							$this->db->like('LOWER('.$key.')', strtolower($val), 'both');
+						}
 					}
 					else
 					{
-						$this->db->or_like('LOWER('.$key.')', strtolower($val), 'both');
+						// do a direct match if the values are integers and have _id in them
+						if (preg_match('#_id#', $key) AND is_numeric($val))
+						{
+							$this->db->or_where(array($key => $val));
+						}
+						else
+						{
+							$this->db->or_like('LOWER('.$key.')', strtolower($val), 'both');
+						}
 					}
 				}
 			}
@@ -218,7 +235,6 @@ class Base_module_model extends MY_Model {
 		$this->db->offset($offset);
 		$query = $this->db->get($this->table_name);
 		$data = $query->result_array();
-		
 		return $data;
 	}
 	

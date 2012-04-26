@@ -37,7 +37,7 @@
 Class Form_builder {
 
 	public $form; // form object used to create the form fields and associate errors with
-	public $id = ''; // id to be used for the form
+	public $id = ''; // id to be used for the containing table or div
 	public $css_class = 'form'; // css class to be used with the form
 	public $form_attrs = 'method="post" action=""'; // form tag attributes
 	public $label_colons = FALSE; // add colons to form labels?
@@ -122,27 +122,19 @@ Class Form_builder {
 			}
 		}
 		
+		$CI =& get_instance();
+		
 		// create form object if not in initialization params
 		if (is_null($this->form))
 		{
-			// test for get_instance function just to make sure we are using CI, in case we want to use this class elsewhere
-			if (function_exists('get_instance'))
-			{
-				$CI =& get_instance();
-				$CI->load->library('form');
-				$this->form = new Form();
-				
-				// load localization helper if not already
-				if (!function_exists('lang'))
-				{
-					$CI->load->helper('language');
-				}
-			}
-			else
-			{
-				require_once('Form.php');
-			}
+			$CI->load->library('form');
+			$this->form = new Form();
 			
+			// load localization helper if not already
+			if (!function_exists('lang'))
+			{
+				$CI->load->helper('language');
+			}
 		}
 		
 		// CSRF protections
@@ -154,6 +146,20 @@ Class Form_builder {
 		}
 	}
 	
+	// --------------------------------------------------------------------
+
+	/**
+	 * Clear fields and html
+	 *
+	 * @access	public
+	 * @return	void
+	 */
+	public function clear()
+	{
+		$this->_fields = array();
+		$this->_html = '';
+	}
+
 	// --------------------------------------------------------------------
 
 	/**
@@ -204,11 +210,21 @@ Class Form_builder {
 					{
 						$is_checkbox = FALSE;
 					}
+					
+					// don't set the values of these form types'
+					else if ($val['type'] == 'submit' OR $val['type'] == 'button')
+					{
+						continue;
+					}
 					else
 					{
 						$is_checkbox = (($val['type'] == 'checkbox') OR ($val['type'] == 'boolean' AND $this->boolean_mode == 'checkbox'));
 					}
-					if (!$is_checkbox) $this->_fields[$key]['value'] = $values[$key];
+					if (!$is_checkbox)
+					{
+						$this->_fields[$key]['value'] = $values[$key];
+					}
+					
 					if (!empty($val['type']))
 					{
 						if ($is_checkbox)
@@ -805,11 +821,21 @@ Class Form_builder {
 				$str .= $this->create_time($params);
 				return $str;
 				break;
+			case 'time' :
+				$str = $this->create_time($params);
+				return $str;
+				break;
 			case 'multi' : case 'array' :
 				return $this->create_multi($params);
 				break;
 			case 'blob' : case 'file' :
 				return $this->create_file($params);
+				break;
+			case 'submit':
+				return $this->create_submit($params);
+				break;
+			case 'button':
+				return $this->create_button($params);
 				break;
 			case 'none': case 'blank':
 				return '';
@@ -820,7 +846,6 @@ Class Form_builder {
 				break;
 			default : 
 				return $this->create_text($params);
-				break;
 		}
 	}
 	
@@ -867,7 +892,7 @@ Class Form_builder {
 		}
 		if ($use_label AND ($params['type'] != 'enum' AND $params['type'] != 'multi' AND $params['type'] != 'array'))
 		{
-			$str .= "<label for=\"".Form::create_id($params['name'])."\" id=\"label_".Form::create_id($params['name'])."\">";
+			$str .= "<label for=\"".Form::create_id($params['orig_name'])."\" id=\"label_".Form::create_id($params['orig_name'])."\">";
 		}
 		if ($this->tooltip_labels)
 		{
@@ -934,6 +959,47 @@ Class Form_builder {
 	// --------------------------------------------------------------------
 
 	/**
+	 * Creates a submit button input for the form
+	 *
+	 * @access	public
+	 * @param	array fields parameters
+	 * @return	string
+	 */
+	public function create_submit($params)
+	{
+		$params = $this->_normalize_value($params);
+		$attrs = array(
+			'class' => $params['class'], 
+			'readonly' => $params['readonly'], 
+			'disabled' => $params['disabled']
+		);
+		return $this->form->submit($params['value'], $params['name'], $attrs);
+	}
+
+	// --------------------------------------------------------------------
+
+	/**
+	 * Creates a basic form button for the form
+	 *
+	 * @access	public
+	 * @param	array fields parameters
+	 * @return	string
+	 */
+	public function create_button($params)
+	{
+		$params = $this->_normalize_value($params);
+		$attrs = array(
+			'class' => $params['class'], 
+			'readonly' => $params['readonly'], 
+			'disabled' => $params['disabled']
+		);
+		$use_input_type = (!empty($params['use_input'])) ? TRUE : FALSE ;
+		return $this->form->button($params['value'], $params['name'], $attrs, $use_input_type);
+	}
+
+	// --------------------------------------------------------------------
+
+	/**
 	 * Creates the textarea input for the form
 	 *
 	 * @access	public
@@ -946,8 +1012,8 @@ Class Form_builder {
 		
 		$attrs = array(
 			'class' => $params['class'], 
-			'rows' => $this->textarea_rows, 
-			'cols' => $this->textarea_cols, 
+			'rows' => (!empty($params['rows'])) ? $params['rows'] : $this->textarea_rows, 
+			'cols' => (!empty($params['cols'])) ? $params['cols'] : $this->textarea_cols, 
 			'readonly' => $params['readonly'], 
 			'disabled' => $params['disabled']
 		);
@@ -1084,7 +1150,7 @@ Class Form_builder {
 				{
 					$params['sorting'] = $params['value'];
 				}
-				$sorting_params['name'] = 'sorting_'.$params['name'];
+				$sorting_params['name'] = 'sorting_'.$params['orig_name'];
 				$sorting_params['value'] = rawurlencode(json_encode($params['sorting']));
 
 				$str .= $this->create_hidden($sorting_params);
@@ -1154,7 +1220,7 @@ Class Form_builder {
 		
 		if (is_array($this->form_attrs))
 		{
-			$this->form_attrs['enctype'] = ' multipart/form-data';
+			$this->form_attrs['enctype'] = 'multipart/form-data';
 		}
 		else if (is_string($this->form_attrs) AND strpos($this->form_attrs, 'enctype') === FALSE)
 		{
@@ -1164,7 +1230,8 @@ Class Form_builder {
 		$file = $this->form->file($params['name'], $attrs);
 		if (isset($params['overwrite']))
 		{
-			$file .= $this->form->hidden($params['name'].'_overwrite', 1);
+			$overwrite = ($params['overwrite'] == 1 OR $params['overwrite'] === TRUE OR $params['overwrite'] === 'yes' OR $params['overwrite'] === 'y') ? '1' : '0';
+			$file .= $this->form->hidden($params['name'].'_overwrite', $overwrite);
 		}
 		if (isset($params['upload_path']))
 		{
@@ -1224,7 +1291,7 @@ Class Form_builder {
 	{
 		$params = $this->_normalize_value($params);
 
-		if (!empty($params['value']) AND is_numeric(substr($params['value'], 0, 1))) 
+		if (!empty($params['value']) AND is_numeric(substr($params['value'], 0, 1)) AND $params['value'] != '0000-00-00 00:00:00')
 		{
 			$time_params['value'] = date('g', strtotime($params['value']));
 		}
@@ -1235,7 +1302,7 @@ Class Form_builder {
 		$time_params['disabled'] = $params['disabled'];
 		$str = $this->create_text($this->_normalize_value($time_params));
 		$str .= ":";
-		if (!empty($params['value']) AND is_numeric(substr($params['value'], 0, 1))) $time_params['value'] = date('i', strtotime($params['value']));
+		if (!empty($params['value']) AND is_numeric(substr($params['value'], 0, 1)) AND $params['value'] != '0000-00-00 00:00:00') $time_params['value'] = date('i', strtotime($params['value']));
 		$time_params['name'] = $params['orig_name'].'_min';
 		$time_params['class'] = 'fillin datepicker_mm';
 		$str .= $this->create_text($this->_normalize_value($time_params));

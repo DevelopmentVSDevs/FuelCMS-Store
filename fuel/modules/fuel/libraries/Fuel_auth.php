@@ -159,19 +159,38 @@ class Fuel_auth {
 	
 	function user_lang()
 	{
+		$default_lang = $this->_CI->config->item('language');
 		$cookie_val = get_cookie($this->get_fuel_trigger_cookie_name());
-		$cookie_val = unserialize($cookie_val);
-		if (empty($cookie_val['language']) OR !is_string($cookie_val['language']))
+		if (is_string($cookie_val))
 		{
-			$cookie_val['language'] = $this->_CI->config->item('language');
+			$cookie_val = unserialize($cookie_val);
+			if (empty($cookie_val['language']) OR !is_string($cookie_val['language']))
+			{
+				$cookie_val['language'] = $default_lang;
+			}
+			return $cookie_val['language'];
 		}
-		return $cookie_val['language'];
-		
+		else
+		{
+			return $default_lang;
+		}
 	}
 
 	function logout()
 	{
+		$this->_CI->load->library('session');
+		$this->_CI->session->sess_destroy();
+		
+		$this->_CI->load->helper('cookie');
+		
 		$this->_CI->session->unset_userdata($this->get_session_namespace());
+		
+		$config = array(
+			'name' => $this->get_fuel_trigger_cookie_name(),
+			'path' => WEB_PATH
+		);
+		delete_cookie($config);
+		
 	}
 	
 }

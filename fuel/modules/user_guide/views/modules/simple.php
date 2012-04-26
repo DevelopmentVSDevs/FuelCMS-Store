@@ -1,5 +1,5 @@
 <h1>Simple Modules</h1>
-<p>Modules in FUEL can range from simple forms to a complex, interactive, multi-page interfaces. 
+<p>Modules in FUEL can range from simple forms to a complex, interactive, multi-page interface. 
 <strong>Simple</strong> modules don't require additional views and controllers to be created. 
 Common examples of simple modules include events, news and job postings.</p>
 <p>For more on creating a simple module, <a href="<?=user_guide_url('modules/tutorial')?>">view the user guide's tutorial</a>.</p>
@@ -84,7 +84,15 @@ on the key value specified in the config (e.g. example):</p>
 			<td><strong>js_controller</strong></td>
 			<td>The default is BaseFuelController</td>
 			<td>None</td>
-			<td>The name of the javascript controller. For more information on creating javascript controllers, visit the section on the javascript <a href="<?=user_guide_url('javascript/jqx')?>">jqx Framework</a></td>
+			<td>The name of the javascript controller. If an array is given, then the key of the array is considered the module folder to look in and the value the name of the controller.
+			The <dfn>js_controller_path</dfn> will automatically be changed to the module's assets folder if no <dfn>js_controller_path</dfn> is provided.
+			For more information on creating javascript controllers, visit the section on the javascript <a href="<?=user_guide_url('javascript/jqx')?>">jqx Framework</a></td>
+		</tr>
+		<tr>
+			<td><strong>js_controller_path</strong></td>
+			<td>The default is the path to the fuel module's asset folder (e.g. fuel/modules/fuel/assets/js/</td>
+			<td>None</td>
+			<td>The base path of where to look for the controller file.</td>
 		</tr>
 		<tr>
 			<td><strong>js_controller_params</strong></td>
@@ -232,6 +240,18 @@ on the key value specified in the config (e.g. example):</p>
 			<td>None</td>
 			<td>None</td>
 			<td>Additional language files to load</td>
+		</tr>
+		<tr>
+			<td><strong>hidden</strong></td>
+			<td>FALSE</td>
+			<td>Boolean Value TRUE/FALSE</td>
+			<td>If set to TRUE, it will hide the module in the admin menu</td>
+		</tr>
+		<tr>
+			<td><strong>table_row_limits</strong></td>
+			<td>array('25' => '25', '50' => '50', '100' => '100')</td>
+			<td>Array</td>
+			<td>This is the list of row limits available in module's record list view in the admin.</td>
 		</tr>
 	</tbody>
 </table>

@@ -78,7 +78,6 @@ class Fuel_page {
 	{
 		$default_home = $this->_CI->config->item('default_home_view', 'fuel');
 		
-		// if a location is provided in the init config, then use it instead of the uri segments and go no further
 		if ($this->location == 'page_router') $this->location = $default_home;
 		
 		$page_data = array('id' => NULL, 'cache' => NULL, 'published' => NULL, 'layout');
@@ -87,10 +86,19 @@ class Fuel_page {
 		{
 			return;
 		}
-
-		$segments = $this->_CI->uri->rsegment_array();
 		
-		// in case a Matchbox module has a module name the same (like news...)
+		// if a location is provided in the init config, then use it instead of the uri segments
+		if (!empty($this->location))
+		{
+			$segs = explode('/', $this->location);
+			$segments = array_combine(range(1, count($segs)), array_values($segs));
+		}
+		else
+		{
+			$segments = $this->_CI->uri->rsegment_array();
+		}
+		
+		// in case a module has a name the same (like news...)
 		if (!empty($segments) AND $segments[count($segments)] == 'index')
 		{
 			array_pop($segments);
@@ -101,7 +109,7 @@ class Fuel_page {
 		// is and what are params being passed to the location
 		$this->_CI->load->module_model(FUEL_FOLDER, 'pages_model');
 
-		if (count($this->_CI->uri->segment_array()) == 0) 
+		if (count($this->_CI->uri->segment_array()) == 0 OR $this->location == $default_home) 
 		{
 			$page_data = $this->_CI->pages_model->find_by_location($default_home, $this->_only_published);
 			$location = $default_home;
@@ -348,6 +356,12 @@ class Fuel_page {
 		{
 			$view = $page;
 
+			// if view is the index.html file, then show a 404
+			if ($view == 'index.html')
+			{
+				show_404();
+			}
+
 			// do not display any views that have an underscore at the beginning of the view name, or is part of the path (e.g. about/_hidden/contact_email1.php)
 			$view_parts = explode('/', $view);
 
@@ -443,12 +457,6 @@ class Fuel_page {
 		
 		if ($fuelify) $output = $this->fuelify($output);
 
-		if ($return) 
-		{
-			return $output;
-		}
-		$this->_CI->output->set_output($output);
-		
 		if ($return)
 		{
 			return $output;
@@ -470,6 +478,7 @@ class Fuel_page {
 		} 
 		
 		$this->_CI->load->library('session');
+		$this->_CI->load->helper('convert');
 		
 		
 		// add top edit bar for fuel
@@ -489,7 +498,10 @@ class Fuel_page {
 		$this->_CI->load->library('form');
 		$vars['page'] = $this->properties();
 		$vars['layouts'] = $this->_CI->fuel_layouts->layouts_list(TRUE);
-		
+		$last_page = uri_path();
+		if (empty($last_page)) $last_page = $this->_CI->config->item('default_home_view', 'fuel');
+		$vars['last_page'] = uri_safe_encode($last_page);
+
 		$editable_asset_types = $this->_CI->config->item('editable_asset_filetypes', 'fuel');
 
 

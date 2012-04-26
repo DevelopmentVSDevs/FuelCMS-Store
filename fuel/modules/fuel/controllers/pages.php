@@ -47,7 +47,10 @@ class Pages extends Module {
 				
 				$this->_save_page_vars($id, $posted);
 				$data = $this->model->find_one_array(array($this->model->table_name().'.id' => $id));
-
+				
+				// run hook
+				$this->_run_hook('create', $data);
+				
 				if (!empty($data))
 				{
 					$msg = lang('module_created', $this->module_name, $data[$this->display_field]);
@@ -79,6 +82,10 @@ class Pages extends Module {
 				
 				$this->_save_page_vars($id, $posted);
 				$data = $this->model->find_one_array(array($this->model->table_name().'.id' => $id));
+				
+				// run hook
+				$this->_run_hook('edit', $data);
+				
 				$msg = lang('module_edited', $this->module_name, $data[$this->display_field]);
 				$this->logs_model->logit($msg);
 				redirect(fuel_uri('pages/edit/'.$id));
@@ -351,6 +358,7 @@ class Pages extends Module {
 				if ($val['type'] == 'array' OR $val['type'] == 'multi')
 				{
 					$value = serialize($value);
+					$val['type'] = 'array'; // force the type to be an array
 				}
 				
 				if (!in_array($val['type'], $var_types)) $val['type'] = 'string';
@@ -364,7 +372,9 @@ class Pages extends Module {
 			}
 			// archive
 			$archive = $this->model->cleaned_data();
+			$archive[$this->model->key_field()] = $id;
 			$archive['variables'] = $page_variables_archive;
+			
 			$this->model->archive($id, $archive);
 			
 			// save to navigation if config allows it
@@ -566,6 +576,10 @@ class Pages extends Module {
 						if ($this->editor_model->save($save))
 						{
 							$this->_process_uploads();
+							
+							// run hook
+							$this->_run_hook('inline', $save);
+							
 						}
 						else
 						{
@@ -649,27 +663,22 @@ class Pages extends Module {
 				
 				// sanitize the file before saving
 				$id = $this->input->post('id', TRUE);
-				$field = $this->js_controller_params['import_view_key'];
+				$field = end(explode('--', $this->js_controller_params['import_view_key']));
 				$where['page_id'] = $id;
 				$where['name'] = $field;
 				$page_var = $this->pagevariables_model->find_one_array($where);
 
-				if (empty($page_var))
+				$file = $this->_sanitize($file);
+				$save['id'] = (empty($page_var)) ? NULL : $page_var['id'];
+				$save['name'] = $field;
+				$save['page_id'] = $id;
+				$save['value'] = $file;
+				
+				if (!$this->pagevariables_model->save($save))
 				{
 					add_error(lang('error_upload'));
 				}
-				else
-				{
-					$file = $this->_sanitize($file);
-					$save['id'] = $page_var['id'];
-					$save['name'] = $this->js_controller_params['import_view_key'];
-					$save['page_id'] = $id;
-					$save['value'] = $file;
-					if (!$this->pagevariables_model->save($save))
-					{
-						add_error(lang('error_upload'));
-					}
-				}
+
 
 				if (!has_errors())
 				{

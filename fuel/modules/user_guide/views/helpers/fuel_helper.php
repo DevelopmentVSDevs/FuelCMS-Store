@@ -26,9 +26,11 @@ The <dfn>params</dfn> parameter can either be string value (in which case it wil
 	<li><strong>offset</strong> - offset the data results returned by the model</li>
 	<li><strong>return_method</strong> - the return method to use which can be an object or an array</li>
 	<li><strong>assoc_key</strong> - the field to be used as an associative key for the data results</li>
-	<li><strong>data</strong> - data to be passed to the view if a model isn't provided</li>
+	<li><strong>data</strong> - data to be passed to the view if a model isn't provided. This information can be accessed in the block from the variable <dfn>$data</dfn></li>
 	<li><strong>editable</strong> - insert in inline editing</li>
 	<li><strong>parse</strong> - parse the contents of the page. Default is set to 'auto' which will NOT try and parse if your <dfn>fuel_mode</dfn> value in the fuel config file is set to "views".</li>
+	<li><strong>vars</strong> - additional variables to pass to the block</li>
+	<li><strong>cache</strong> - will cache the block</li>
 </ul>
 
 
@@ -94,14 +96,43 @@ because it returns inline editing markers that later get parsed out by FUEL. For
 &lt;?=fuel_edit('my_url', 'Edit Link')?&gt; &lt;a href="&lt;?=site_url($my_url)?&gt;"&gt;my link&lt;/a&gt;
 </pre>
 
-
 <h2>fuel_edit(<var>id</var>, <var>[label]</var>, <var>[module]</var>, <var>[xOffset]</var>, <var>[yOffset]</var>)</h2>
 <p>Sets a variable marker (pencil icon) in a page which can be used for inline editing.
 The <dfn>id</dfn> parameter is the unique id that will be used to query the module. You can also pass an id value
 and a field like so <dfn>id|field</dfn>. This will display only a certain field instead of the entire module form.
 The <dfn>label</dfn> parameter specifies the label to display next to the pencil icon.
-The <dfn>xOffset</dfn> and <dfn>yOffset</dfn> are pixel values to offset the pencil icon.
+The <dfn>xOffset</dfn> and <dfn>yOffset</dfn> are pixel values to offset the pencil icon.</p>
+
+<h2>fuel_var_append(<var>key</var>, <var>value</var>)</h2>
+<p>Appends a value to an array variable. This function makes it convenient if you are in a view file and want to say add a javascript
+file to your <dfn>$js</dfn> array variable for example. The <dfn>$js</dfn> variable can then be passed to the asset helper's <dfn>js($js)</dfn> function with the appended values.
+The <dfn>key</dfn> value is the name of the array variable you want to append to.
+The <dfn>value</dfn> can be either an array or a string. An array will merge the values.
 </p>
+
+<pre class="brush:php">
+// EXAMPLE HEADER FILE
+...
+&lt;meta name=&quot;keywords&quot; content=&quot;&lt;?php echo fuel_var(&#x27;meta_keywords&#x27;)?&gt;&quot; /&gt;
+&lt;meta name=&quot;description&quot; content=&quot;&lt;?php echo fuel_var(&#x27;meta_description&#x27;)?&gt;&quot; /&gt;
+
+&lt;?php echo css(&#x27;main&#x27;); ?&gt;
+&lt;?php echo css($css); ?&gt;
+
+&lt;?php echo js(&#x27;jquery, main&#x27;); ?&gt;
+&lt;?php echo js($js); ?&gt;
+...
+
+
+// Then in your view file
+...
+&lt;php
+fuel_var_append('css', 'my_css_file.css');
+fuel_var_append('js', 'my_js_file.js');
+?&gt;
+<h1>About our company</h1>
+...
+</pre>
 
 
 <h2>fuel_cache_id(<var>[location]</var>)</h2>

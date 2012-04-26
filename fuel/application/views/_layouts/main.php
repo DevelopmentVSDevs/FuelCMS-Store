@@ -1,11 +1,6 @@
 <?php $this->load->view('_blocks/header')?>
-
-	<?php /* RIGHT SIDE WITH SIDE MENU AND BLCOKS */ ?>
-	<?php if (!empty($blocks) OR !empty($sidemenu)) : ?>
-
-	<?php endif; ?>
-
-	<div id="main-inner">
+	
+	<div id="main_inner">
 		<?php echo fuel_var('body', ''); ?>
 	</div>
 	

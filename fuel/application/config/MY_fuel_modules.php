@@ -20,19 +20,3 @@ $config['modules']['projects'] = array(
 );
 
 *********************** EXAMPLE ***********************************/
-
-$config['modules']['calendar'] = array(
-	'preview_path' => 'calendar',
-);
-
-$config['modules']['home'] = array();
-
-$config['modules']['invest'] = array();
-
-$config['modules']['services'] = array();
-
-$config['modules']['rates'] = array();
-
-$config['modules']['about'] = array(
-	'preview_path' => 'about',
-);

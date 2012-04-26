@@ -65,6 +65,31 @@ foreach($rows->result() as $id => $row)
 }
 </pre>
 
+<h2>$this->examples_model->map_query_records(<var>query</var>, <var>['assoc_key']</var>)</h2>
+<p>Maps a query result object to an array of record objects. The second parameter is optional and if used, should contain the name of the field you want 
+to use for the returned array's key value.</p>
+<pre class="brush: php">
+...
+$query = $this->db->query('SELECT * FROM USERS');
+$users = $this->examples_model->map_query_records($query, 'id');
+foreach($users as $id => $user)
+{
+    echo $user->name;
+}
+
+</pre>
+
+<h2>$this->examples_model->map_to_record_class(<var>row</var>, <var>[fields]</var>)</h2>
+<p>Maps an associative record array to the models custom record object. The second  parameter is optional and specifies all the field names the record can contain however, 
+the values of those fields are determined by the <dfn>row</dfn> value passed. If no <dfn>fields</dfn> parameter is passed, then the key values of the $row, will be used.</p>
+<pre class="brush: php">
+$my_user['id'] = 1;
+$my_user['name'] = 'Darth Vader';
+$my_user['email'] = 'darth@deathstar.com';
+$my_custom_record = $this->examples_model->map_to_record_class($my_user); 
+echo $my_custom_record->name;
+</pre>
+
 <h2>$this->examples_model->find_by_key(<var>key_val</var>, <var>['return_method']</var>)</h2>
 <p>Finds a single record based on the tables key value(s). The second  parameter is optional and specifies if the object
 should be returned as an array or an object.</p>
@@ -172,7 +197,7 @@ $where['order_by'] = 'name asc';
 $where['limit'] = 10;
 
 $query = $this->examples_model->query($where); 
-$results = $query->results(); 
+$results = $query->result(); 
 </pre>
 
 <a name="options_list"></a>
@@ -527,7 +552,7 @@ print_r($table_meta['active']['options']); // array('yes', 'no')
 </pre>
 
 
-<h2>$this->examples_model->form_fields(<var>values</var>, <var>related</var>)</h2>
+<h2>$this->examples_model->form_fields(<var>[values]</var>, <var>[related]</var>)</h2>
 <p>Somewhat similar to the table_info method with difference being that the returned array has information for creating a form.
 The related parameter is used to conveniently map other model information with this form to create a many to many multi-select form element.
 This method is usally used with the <a href="<?=user_guide_url('libraries/form_builder')?>">Form_builder</a> class.
@@ -596,12 +621,12 @@ $this->examples_model->debug_data();
 
 </pre>
 
-<h2>$this->examples_model->debug()</h2>
+<h2>$this->examples_model->debug_query()</h2>
 <p>Prints out to the screen the last query SQL ran by the model.
 </p>
 
 <pre class="brush: php">
-$this->examples_model->debug(); 
+$this->examples_model->debug_query(); 
 // prints out the last query run by the model
 
 </pre>

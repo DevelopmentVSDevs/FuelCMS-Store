@@ -32,6 +32,7 @@ $lang['form_label_send_email_notification'] = 'Send password update email notifi
 $lang['error_importing_ajax'] = 'Error importing view file';
 
 $lang['viewpage_close'] = 'Close';
+$lang['viewpage_new_window'] = 'New Window';
 
 $lang['rearrange_on'] = 'You can change the precedence order by selecting and dragging the data rows below.';
 
@@ -48,8 +49,8 @@ $lang['markitup_h1'] = 'Heading 1';
 $lang['markitup_h2'] = 'Heading 2';
 $lang['markitup_h3'] = 'Heading 3';
 $lang['markitup_h4'] = 'Heading 4';
-$lang['markitup_ul'] = 'Numeric List';
-$lang['markitup_ol'] = 'Bullet List';
+$lang['markitup_ul'] = 'Bullet List';
+$lang['markitup_ol'] = 'Numeric List';
 $lang['markitup_li'] = 'List Item';
 $lang['markitup_blockquote'] = 'Block Quote';
 $lang['markitup_hr'] = 'Horizontal Rule';

@@ -5,6 +5,7 @@ require_once('base_module_model.php');
 class Sitevariables_model extends Base_module_model {
 
 	public $required = array('name');
+	public $unique_fields = array('name');
 	
 	function __construct()
 	{
@@ -14,18 +15,18 @@ class Sitevariables_model extends Base_module_model {
 	function retrieve_all()
 	{
 		$vars = $this->options_list('name', 'value', array('active' => 'yes'));
-			return $vars;
+		return $vars;
 	}
 
 	function retrieve_one($name = null)
 	{
-		$vars = $this->find_one(array('active' => 'yes', 'name' => $name));
+		$vars = $this->find_one_array(array('active' => 'yes', 'name' => $name));
 		return $vars['value'];
 	}
 	
 	function form_fields($values = array()){
 		$fields = parent::form_fields();
-		$CI =& get_instance();
+		$fields['value']['class'] = 'markitup';
 		return $fields;
 	}
 

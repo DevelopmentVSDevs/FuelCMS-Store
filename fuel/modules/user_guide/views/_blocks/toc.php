@@ -37,6 +37,7 @@
 					<li><a href="<?=user_guide_url('general/inline-editing')?>">Inline Editing</a></li>
 					<li><a href="<?=user_guide_url('general/security')?>">Security</a></li>
 					<li><a href="<?=user_guide_url('general/localization')?>">Localization</a></li>
+					<li><a href="<?=user_guide_url('general/redirects')?>">Redirects</a></li>
 					<li><a href="http://www.getfuelcms.com/blog/2011/03/14/fuel-cms-0.9.3-released">What's New With 0.9.3</a></li>
 				</ul>
 
@@ -56,6 +57,8 @@
 					<li><a href="<?=user_guide_url('modules/simple')?>">Simple Modules</a></li>
 					<li><a href="<?=user_guide_url('modules/advanced')?>">Advanced Modules</a></li>
 					<li><a href="<?=user_guide_url('modules/tutorial')?>">Creating Modules</a></li>
+					<li><a href="<?=user_guide_url('modules/forms')?>">Module Forms</a></li>
+					<li><a href="<?=user_guide_url('modules/hooks')?>">Module Hooks</a></li>
 				</ul>
 
 				<?php if (!empty($modules)) : ?>

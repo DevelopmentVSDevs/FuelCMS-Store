@@ -19,24 +19,25 @@ $config['nav']['blog'] = array(
 |--------------------------------------------------------------------------
 */
 
-// deterines wether to use this configuration below or the database for controlling the blogs behavior
+// deterines whether to use this configuration below or the database for controlling the blogs behavior
 $config['blog_use_db_table_settings'] = TRUE;
 
 $config['blog'] = array();
 $config['blog']['title'] = '';
 $config['blog']['akismet_api_key'] = '';
+$config['blog']['uri'] = 'blog/';
 $config['blog']['theme_path'] = 'themes/default/';
 $config['blog']['use_cache'] = '';
 $config['blog']['cache_ttl'] = 3600;
 $config['blog']['per_page'] = 5;
 $config['blog']['description'] = '';
-$config['blog']['use_captchas'] = 1;
+$config['blog']['use_captchas'] = 0;
 $config['blog']['monitor_comments'] = 1;
 $config['blog']['theme_layout'] = 'blog';
 $config['blog']['save_spam'] = 1;
 $config['blog']['allow_comments'] = 1;
 $config['blog']['comments_time_limit'] = '';
-$config['blog']['theme_module'] = '';
+$config['blog']['theme_module'] = 'blog';
 $config['blog']['multiple_comment_submission_time_limit'] = 30;
 $config['blog']['asset_upload_path'] = 'images/blog/';
 

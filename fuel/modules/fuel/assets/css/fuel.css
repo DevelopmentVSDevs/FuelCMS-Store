@@ -33,6 +33,7 @@ span.required { color:#c30; }
 .hidden { display: none; }
 .float_left { float: left; }
 .float_right { float: right; }
+.tiny { font-size: 9px; }
 tr.drag { border: 1px solid #ccc !important; background-color: #ffe !important }
 tr.drag td { cursor: move !important; background-color: #ffe !important; }
 a.editor_viewsource { margin: 4px 0 4px 0; display: block; float: left; height: 14px; line-height: 14px !important; }
@@ -229,8 +230,10 @@ table.form { border: none; border-spacing: 0; }
 table.form td.label, table.inline_form td.label { padding: 4px 15px 2px 0; font-weight: bold; vertical-align: top; }
 table.form td.value, table.inline_form td.value { padding: 3px 0;vertical-align: top; }
 table.form td.required, table.inline_form td.required { padding-top: 10px; }
-table.more_filters td.label { padding: 0 3px 0 15px; }
-table.more_filters td.value {  }
+div.more_filters div.field { float: left; }
+div.more_filters div.field { padding: 0 3px 0 10px; }
+div.more_filters div.field label { padding-right: 5px; }
+div.more_filters div.value {  }
 div#main_content_inner table.form td.label { min-width: 130px; }
 
 /* tree */
@@ -267,7 +270,10 @@ div#asset_modal .buttonbar, div#add_edit_inline_modal .buttonbar { float: right;
 div.img_display { float: right; overflow: auto; height: 120px; width: 300px; }
 
 div#viewpage_modal { top: 16px; border: 2px solid #666; background-color: #fff; height: 96%; width: 96%; padding: 0; display: none; }
-a#viewpage_close { position: absolute; z-index: 1; right: 0px; top: -17px; color: #ccc; background-color: #666; padding: 1px 5px; }
+div#viewpage_btns { position: absolute; z-index: 1; top: -17px; right: -2px; }
+a.viewpage_btn { float: left; margin-right: 2px; color: #ccc; background-color: #666; padding: 1px 5px; }
+a#viewpage_close { right: 0px; }
+a#viewpage_new_page { right: 100px; }
 iframe#viewpage_iframe { border: none; width: 100%; height: 100%; }
 
 /* misc */

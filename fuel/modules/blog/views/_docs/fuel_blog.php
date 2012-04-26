@@ -119,11 +119,11 @@ The <dfn>return</dfn> parameter determines whether to echo the output or just re
 <p>Returns a single post. The post parameter can be either the permalink value or the post's id.</p>
 
 
-<h2>$this->fuel_blog->get_next_post(<var>post_date</var>, <var>'[return_method]'</var>)</h2>
+<h2>$this->fuel_blog->get_next_post(<var>post</var>, <var>'[return_method]'</var>)</h2>
 <p>Returns the next post (if any) from a given date.</p>
 
 
-<h2>$this->fuel_blog->get_previous_post(<var>post_date</var>, <var>'[return_method]'</var>)</h2>
+<h2>$this->fuel_blog->get_prev_post(<var>post</var>, <var>'[return_method]'</var>)</h2>
 <p>Returns the previous post (if any) from a given date.</p>
 
 
@@ -144,8 +144,10 @@ The <dfn>return</dfn> parameter determines whether to echo the output or just re
 
 
 <h2>$this->fuel_blog->get_comments(<var>[where]</var>, <var>'[order_by]'</var>, <var>[limit]</var>, <var>[offset]</var>, <var>'[return_method]'</var>, <var>'[assoc_key]'</var>)</h2>
-<p>Returns a single post. The post parameter can be either the permalink value or the post's id.</p>
+<p>Returns a comments from posts based on the where condition.</p>
 
+<h2>$this->fuel_blog->get_comments(<var>[where]</var>, <var>'[order_by]'</var>, <var>[limit]</var>, <var>[offset]</var>, <var>'[return_method]'</var>, <var>'[assoc_key]'</var>)</h2>
+<p>Returns a single comment.</p>
 
 <h2>$this->fuel_blog->get_links(<var>[where]</var>, <var>'[order_by]'</var>, <var>[limit]</var>, <var>[offset]</var>, <var>'[return_method]'</var>, <var>'[assoc_key]'</var>)</h2>
 <p>Returns links.</p>

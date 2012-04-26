@@ -6,6 +6,7 @@ class Users_model extends Base_module_model {
 	
 	public $required = array('user_name', 'email', 'first_name', 'last_name');
 	public $filters = array('first_name', 'last_name', 'user_name');
+	public $unique_fields = array('user_name');
 	
 	function __construct()
 	{
@@ -198,14 +199,20 @@ class Users_model extends Base_module_model {
 		{
 			$this->required[] = 'password';
 			$this->add_validation('email', array(&$this, 'is_new_email'), lang('error_val_empty_or_already_exists', lang('form_label_email')));
-			$this->get_validation()->add_rule('password', 'is_equal_to', lang('error_invalid_password_match'), array($this->normalized_save_data['password'], $this->normalized_save_data['confirm_password']));
+			if (isset($this->normalized_save_data['confirm_password']))
+			{
+				$this->get_validation()->add_rule('password', 'is_equal_to', lang('error_invalid_password_match'), array($this->normalized_save_data['password'], $this->normalized_save_data['confirm_password']));
+			}
 		}
 		
 		// for editing
 		else
 		{
 			$this->add_validation('email', array(&$this, 'is_editable_email'), lang('error_val_empty_or_already_exists', lang('form_label_email')), $values['id']);
-			$this->get_validation()->add_rule('password', 'is_equal_to', lang('error_invalid_password_match'), array($this->normalized_save_data['new_password'], $this->normalized_save_data['confirm_password']));
+			if (isset($this->normalized_save_data['new_password']) AND isset($this->normalized_save_data['confirm_password']))
+			{
+				$this->get_validation()->add_rule('password', 'is_equal_to', lang('error_invalid_password_match'), array($this->normalized_save_data['new_password'], $this->normalized_save_data['confirm_password']));
+			}
 		}
 		return $values;
 	}
@@ -281,7 +288,7 @@ class Users_model extends Base_module_model {
 		parent::delete($where);
 		$CI =& get_instance();
 		$CI->load->module_model('fuel','user_to_permissions_model');
-		$CI->user_to_permissions_model->delete(array('user_id' => $where['id']));
+		return $CI->user_to_permissions_model->delete(array('user_id' => $where['id']));
 	}
 	
 	function is_new_email($email)

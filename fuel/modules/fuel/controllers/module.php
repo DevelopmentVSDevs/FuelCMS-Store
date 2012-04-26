@@ -4,7 +4,10 @@ require_once(FUEL_PATH.'/libraries/Fuel_base_controller.php');
 class Module extends Fuel_base_controller {
 	
 	public $module = '';
-	
+
+	// array of data about all (if any) uploaded files
+	public $upload_data = array();
+
 	function __construct()
 	{
 		parent::__construct();
@@ -111,7 +114,14 @@ class Module extends Fuel_base_controller {
 		
 		// global variables
 		$vars = array();
-		if (!empty($params['js'])) $vars['js'] = $params['js'];
+		if (!empty($params['js']))
+		{
+			if (is_string($params['js']))
+			{
+				$params['js'] = preg_split("/,\s*/", $params['js']);
+			}
+			$vars['js'] = $params['js'];
+		}
 		if (!empty($this->nav_selected)) $vars['nav_selected'] = $this->nav_selected;
 		$this->load->vars($vars);
 		
@@ -143,7 +153,8 @@ class Module extends Fuel_base_controller {
 		
 		if (!is_ajax() AND !empty($_POST))
 		{
-			$uri = $this->config->item('fuel_path', 'fuel').$this->module.'/items/params/'.$seg_params.'/offset/'.$params['offset'];
+			//$uri = $this->config->item('fuel_path', 'fuel').$this->module.'/items/params/'.$seg_params.'/offset/'.$params['offset'];
+			$uri = $this->config->item('fuel_path', 'fuel').$this->module_uri.'/items/offset/'.$params['offset'];
 			redirect($uri);
 		}
 		
@@ -207,7 +218,7 @@ class Module extends Fuel_base_controller {
 				$items = $this->model->list_items($params['limit'], $params['offset'], $params['col'], $params['order']);
 				$this->data_table->set_sorting($params['col'], $params['order']);
 			}
-
+			
 			// set data table actions... look first for item_actions set in the fuel_modules
 			foreach($this->table_actions as $key => $val)
 			{
@@ -243,7 +254,7 @@ class Module extends Fuel_base_controller {
 					if (strtoupper($val) != 'VIEW' OR (!empty($this->preview_path) AND strtoupper($val) == 'VIEW'))
 					{
 						$action_name = lang('table_action_'.strtolower($val));
-						if (empty($action_name)) $actino_name = $val;
+						if (empty($action_name)) $action_name = $val;
 						$this->data_table->add_action($action_name, site_url('/'.$this->config->item('fuel_path', 'fuel').$this->module_uri.'/'.strtolower($val).'/{'.$this->model->key_field().'}'), 'url');
 					}
 				}
@@ -331,7 +342,9 @@ class Module extends Fuel_base_controller {
 			$this->form_builder->css_class = 'more_filters';
 			$this->form_builder->set_field_values($field_values);
 			
-			$vars['more_filters'] = $this->form_builder->render();
+			// keycheck is already put in place by $this->form->close() in module_list layout
+			$this->form_builder->key_check = FALSE; 
+			$vars['more_filters'] = $this->form_builder->render_divs();
 
 			$this->_render($this->views['list'], $vars);
 		}
@@ -377,7 +390,7 @@ class Module extends Fuel_base_controller {
 			$posted_vars = array('col', 'order', 'limit', 'offset', 'precedence', 'view_type');
 			foreach($posted_vars as $val)
 			{
-				if ($this->input->post($val)) $posted[$val] = $this->input->post($val);
+				if ($this->input->post($val)) $posted[$val] = $this->input->post($val, TRUE);
 			}
 			
 			// custom module filters
@@ -387,16 +400,24 @@ class Module extends Fuel_base_controller {
 			{
 				if (isset($_POST[$key]))
 				{
-					$posted[$key] = $this->input->post($key);
-					$this->filters[$key]['value'] = $this->input->post($key);
-					$extra_filters[$key] = $this->input->post($key);
+					$posted[$key] = $this->input->post($key, TRUE);
+					$this->filters[$key]['value'] = $posted[$key];
+					$extra_filters[$key] = $posted[$key];
 				}
 			}
 			$posted['extra_filters'] = $extra_filters;
 			
 		}
 		
+		//$params = array_merge($defaults, $page_state, $uri_params, $posted);
 		$params = array_merge($defaults, $page_state, $uri_params, $posted);
+		
+		// reset offset if you apply a filter (via POST and not ajax)
+		if (!empty($_POST) and !is_ajax())
+		{
+			$params['offset'] = 0;
+		}
+		
 		if ($params['search_term'] == lang('label_search')) $params['search_term'] = NULL;
 		/* PROCESS PARAMS END */
 		
@@ -469,7 +490,13 @@ class Module extends Fuel_base_controller {
 			}
 			
 			$model = $this->model;
-
+			
+			// run before_create hook
+			$this->_run_hook('before_create', $posted);
+			
+			// run before_save hook
+			$this->_run_hook('before_save', $posted);
+			
 			// reset dup id
 			if ($_POST[$this->model->key_field()] == 'dup')
 			{
@@ -504,10 +531,20 @@ class Module extends Fuel_base_controller {
 				else
 				{
 					// archive data
-					if ($this->archivable) $this->model->archive($id, $this->model->cleaned_data());
+					$archive_data = $this->model->cleaned_data();
+					$archive_data[$this->model->key_field()] = $id;
+					if ($this->archivable) $this->model->archive($id, $archive_data);
 					$data = $this->model->find_one_array(array($this->model->table_name().'.'.$this->model->key_field() => $id));
+
+					// run after_create hook
+					$this->_run_hook('after_create', $data);
+					
+					// run after_save hook
+					$this->_run_hook('after_save', $posted);
+					
 					if (!empty($data))
 					{
+						
 						$msg = lang('module_edited', $this->module_name, $data[$this->display_field]);
 						$this->logs_model->logit($msg);
 						$this->_clear_cache();
@@ -536,6 +573,12 @@ class Module extends Fuel_base_controller {
 			
 			$posted = $this->_process();
 			
+			// run before_edit hook
+			$this->_run_hook('before_edit', $posted);
+			
+			// run before_save hook
+			$this->_run_hook('before_save', $posted);
+			
 			if ($this->model->save($posted))
 			{
 				// process $_FILES
@@ -554,8 +597,16 @@ class Module extends Fuel_base_controller {
 				else
 				{
 					// archive data
-					if ($this->archivable) $this->model->archive($id, $this->model->cleaned_data());
+					$archive_data = $this->model->cleaned_data();
+					if ($this->archivable) $this->model->archive($id, $archive_data);
 					$data = $this->model->find_one_array(array($this->model->table_name().'.'.$this->model->key_field() => $id));
+					
+					// run after_edit hook
+					$this->_run_hook('after_edit', $data);
+
+					// run after_save hook
+					$this->_run_hook('after_save', $data);
+
 					$msg = lang('module_edited', $this->module_name, $data[$this->display_field]);
 					$this->logs_model->logit($msg);
 					$this->_clear_cache();
@@ -621,44 +672,46 @@ class Module extends Fuel_base_controller {
 		// loop through uploaded files
 		if (!empty($_FILES))
 		{
-			foreach($_FILES as $file => $file_info)
+			foreach ($_FILES as $file => $file_info)
 			{
 				if ($file_info['error'] == 0)
 				{
 					$posted[$file] = $file_info['name'];
 					
 					$file_tmp = current(explode('___', $file));
+					$field_name = $file_tmp;
 
 					// if there is a field with the suffix of _upload, then we will overwrite that posted value with this value
-					if (substr($file_tmp, ($file_tmp - 7)) == '_upload')
-					{
+					if (substr($file_tmp, ($file_tmp - 7)) == '_upload') {
 						$field_name = substr($file_tmp, 0, ($file_tmp - 7));
-
-						if (isset($posted[$file_tmp.'_filename']))
-						{
-							$field_value = $posted[$file_tmp.'_filename'];
-						}
-						else
-						{
-							$field_value = $file_info['name'];
-						}
-						// FIX ME....
-						// foreach($_POST as $key => $val)
-						// {
-						// 	$tmp_key = end(explode('--', $key));
-						// 	$_POST[$tmp_key] = preg_replace('#(.*){(.+)\}(.*)#e', "'\\1'.\$_POST['\\2'].'\\3'", $val);
-						// }
-						
-						if (strpos($field_value, '{') !== FALSE )
-						{
-							$field_value = preg_replace('#(.*){(.+)\}(.*)#e', "'\\1'.\$posted['\\2'].'\\3'", $field_value);
-						}
-
-						// set both values for the namespaced and non-namespaced... make them underscored and lower cased
-						$tmp_field_name = end(explode('--', $field_name));
-						$posted[$tmp_field_name] = url_title($field_value, 'underscore', TRUE);
-						$posted[$field_name] = url_title($field_value, 'underscore', TRUE);
 					}
+
+					if (isset($posted[$file_tmp.'_filename']))
+					{
+						// get file extension
+						$path_info = pathinfo($file_info['name']);
+						$field_value = $posted[$file_tmp.'_filename'].'.'.$path_info['extension'];
+					}
+					else
+					{
+						$field_value = $file_info['name'];
+					}
+					// FIX ME....
+					// foreach($_POST as $key => $val)
+					// {
+					// 	$tmp_key = end(explode('--', $key));
+					// 	$_POST[$tmp_key] = preg_replace('#(.*){(.+)\}(.*)#e', "'\\1'.\$_POST['\\2'].'\\3'", $val);
+					// }
+					
+					if (strpos($field_value, '{') !== FALSE )
+					{
+						$field_value = preg_replace('#(.*){(.+)\}(.*)#e', "'\\1'.\$posted['\\2'].'\\3'", $field_value);
+					}
+
+					// set both values for the namespaced and non-namespaced... make them underscored and lower cased
+					$tmp_field_name = end(explode('--', $field_name));
+					$posted[$tmp_field_name] = url_title($field_value, 'underscore', TRUE);
+					$posted[$field_name] = url_title($field_value, 'underscore', TRUE);
 				}
 			}
 		}
@@ -870,11 +923,48 @@ class Module extends Fuel_base_controller {
 		if (!empty($_POST['id']))
 		{
 			$posted = explode('|', $this->input->post('id'));
-			foreach($posted as $id)
+			
+			
+			// run before_delete hook
+			$this->_run_hook('before_delete', $posted);
+			
+			// Flags
+			$any_success = $any_failure = FALSE;
+			foreach ($posted as $id)
 			{
-				$this->model->delete(array($this->model->key_field() => $id));
+				if ($this->model->delete(array($this->model->key_field() => $id)))
+				{
+					$any_success = TRUE;
+				}
+				else
+				{
+					$any_failure = TRUE;
+				}
 			}
-			$this->session->set_flashdata('success', lang('data_deleted'));
+			// set a success delete message
+			if ($any_success)
+			{
+				$this->session->set_flashdata('success', lang('data_deleted'));
+			}
+			
+			// set an error delete message
+			if ($any_failure)
+			{
+				// first try to get an error added in model by $this->add_error('...')
+				$msg = $this->model->get_validation()->get_last_error();
+				
+				// if there is none like that, lets use default message
+				if (is_null($msg))
+				{
+					$msg = lang('data_not_deleted');
+				}
+
+				$this->session->set_flashdata('error', $msg);
+			}
+			
+			// run after_delete hook
+			$this->_run_hook('after_delete', $posted);
+			
 			$this->_clear_cache();
 			$this->logs_model->logit('Multiple module '.$this->module.' data deleted');
 			redirect(fuel_uri($this->module_uri));
@@ -935,11 +1025,20 @@ class Module extends Fuel_base_controller {
 	{
 		if (!empty($this->preview_path))
 		{
-			$data = $this->model->find_one_array(array($this->model->table_name().'.id' => $id));
+			$data = $this->model->find_one_array(array($this->model->table_name().'.'.$this->model->key_field() => $id));
 
-			// use regex to replace {} values in the preview path
-			$url = preg_replace('#^(.*)\{(.+)\}(.*)$#e', "'\\1'.\$data['\\2'].'\\3'", $this->preview_path);
-			
+			$url = $this->preview_path;
+		
+			// get the keys from the preview path
+			preg_match_all('#\{(.+)\}#U', $this->preview_path, $matches, PREG_PATTERN_ORDER);
+			if (!empty($matches[1]))
+			{
+				foreach($matches[1] as $match)
+				{
+					$url = str_replace('{'.$match.'}', $data[$match], $url);
+				}
+			}
+
 			// change the last page to be the referrer
 			$last_page = substr($_SERVER['HTTP_REFERER'], strlen(site_url()));
 			$this->_last_page($last_page);
@@ -1038,6 +1137,16 @@ class Module extends Fuel_base_controller {
 					unset($values['published']);
 				}
 				
+				// run hook
+				if ($id === 'create')
+				{
+					$this->_run_hook('before_create', $posted);
+				}
+				else
+				{
+					$this->_run_hook('before_edit', $posted);
+				}
+				
 				$saved_id = $this->model->save($posted);
 
 				if (!$this->_process_uploads())
@@ -1052,7 +1161,21 @@ class Module extends Fuel_base_controller {
 				{
 					
 					// archive data
-					if ($this->archivable) $this->model->archive($id, $this->model->cleaned_data());
+					$archive_data = $this->model->cleaned_data();
+					$archive_data[$this->model->key_field()] = $saved_id;
+					if ($this->archivable) $this->model->archive($id, $archive_data);
+					
+					// run hook
+					if ($id === 'create')
+					{
+						$this->_run_hook('after_create', $archive_data);
+					}
+					else
+					{
+						$this->_run_hook('after_edit', $archive_data);
+					}
+					
+					
 					$this->_clear_cache();
 					$str = (is_ajax()) ? $saved_id : '<script type="text/javascript">parent.location.reload(true);</script>';
 					$this->output->set_output($str);
@@ -1161,6 +1284,40 @@ class Module extends Fuel_base_controller {
 		
 	}
 	
+	function ajax($method = NULL)
+	{
+		// must not be empty and must start with find_ (... don't want to access methods like delete)
+		if (is_ajax())
+		{
+			// append ajax to the method name... to prevent any conflicts with default methods
+			$method = 'ajax_'.$method;
+			$this->uri->init_get_params();
+			$params = $_GET;
+			
+			if (!method_exists($this->model, $method))
+			{
+				show_error(lang('error_invalid_method'));
+			}
+			
+			$results = $this->model->$method($params);
+			
+			if (is_string($results))
+			{
+				$this->output->set_output($results);
+			}
+			else
+			{
+				$this->output->set_header('Cache-Control: no-cache, must-revalidate');
+				$this->output->set_header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
+				$this->output->set_header('Last-Modified: '. gmdate('D, d M Y H:i:s').'GMT');
+				$this->output->set_header('Content-type: application/json');
+				$output = json_encode($results);
+				print($output);
+			}
+			
+		}
+	}
+	
 	protected function _clear_cache()
 	{
 		// reset cache for that page only
@@ -1187,7 +1344,7 @@ class Module extends Fuel_base_controller {
 		$errors = FALSE;
 		if (!empty($_FILES))
 		{
-			$this->load->model('assets_model');
+			$this->load->module_model(FUEL_FOLDER, 'assets_model');
 			$this->load->library('upload');
 			$this->load->helper('directory');
 						
@@ -1195,7 +1352,7 @@ class Module extends Fuel_base_controller {
 			$config['max_width']  = $this->config->item('assets_upload_max_width', 'fuel');
 			$config['max_height']  = $this->config->item('assets_upload_max_height', 'fuel');
 			
-			// loop through all asset types
+			// loop through all the uploaded files
 			foreach($_FILES as $file => $file_info)
 			{
 				if ($file_info['error'] == 0)
@@ -1209,6 +1366,7 @@ class Module extends Fuel_base_controller {
 					$is_multi = (count($test_multi) > 1);
 					$multi_root = $test_multi[0];
 					
+					// loop through all the allowed file types that are accepted for the asset directory
 					foreach($this->assets_model->get_dir_filetypes() as $key => $val)
 					{
 						$file_types = explode('|', strtolower($val));
@@ -1253,13 +1411,13 @@ class Module extends Fuel_base_controller {
 						} 
 						
 						// overwrite
-						if (!empty($posted[$file.'_overwrite']))
+						if (isset($posted[$file.'_overwrite']))
 						{
-							$config['overwrite'] = (!empty($posted[$file.'_overwrite']));
+							$config['overwrite'] = (is_true_val($posted[$file.'_overwrite']));
 						}
-						else if (!empty($posted[$multi_root.'_overwrite']))
+						else if (isset($posted[$multi_root.'_overwrite']))
 						{
-							$config['overwrite'] = (!empty($posted[$multi_root.'_overwrite']));
+							$config['overwrite'] = (is_true_val($posted[$multi_root.'_overwrite']));
 						}
 						else
 						{
@@ -1282,7 +1440,7 @@ class Module extends Fuel_base_controller {
 
 						//$config['xss_clean'] = TRUE; // causes problem with image if true... so we use the below method
 						$tmp_file = file_get_contents($file_info['tmp_name']);
-						if ($this->sanitize_images AND xss_clean($tmp_file, TRUE) === FALSE)
+						if ($this->sanitize_images AND is_image_file($config['file_name']) AND xss_clean($tmp_file, TRUE) === FALSE)
 						{
 							$errors = TRUE;
 							add_error(lang('upload_invalid_filetype'));
@@ -1298,11 +1456,34 @@ class Module extends Fuel_base_controller {
 								add_error($this->upload->display_errors('', ''));
 								$this->session->set_flashdata('error', $this->upload->display_errors('', ''));
 							}
+							else
+							{
+								// saves data about successfully uploaded file
+								$this->upload_data[] = $this->upload->data();
+							}
 						}
+					}
+					else
+					{
+						$errors = TRUE;
+						add_error(lang('upload_invalid_filetype'));
 					}
 				}
 			}
 		}
+		
+		// transfers data about successfully uploaded file to the model
+		if (isset($this->model->upload_data))
+		{
+			$this->model->upload_data = $this->upload_data;
+		}
 		return !$errors;
+	}
+	
+	protected function _run_hook($hook, $params = array())
+	{
+		// call hook
+		$hook_name = $hook.'_'.$this->module;
+		return $GLOBALS['EXT']->_call_hook($hook_name, $params);
 	}
 }

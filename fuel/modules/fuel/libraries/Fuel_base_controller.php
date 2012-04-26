@@ -3,7 +3,8 @@ define('FUEL_ADMIN', TRUE);
 
 class Fuel_base_controller extends CI_Controller {
 	
-	public $js_controller = 'BaseFuelController';
+	public $js_controller = 'fuel.controller.BaseFuelController';
+	public $js_controller_path = '';
 	public $js_controller_params = array();
 	public $nav_selected;
 	
@@ -29,7 +30,7 @@ class Fuel_base_controller extends CI_Controller {
 		// set the language based on first the users profile and then what is in the config... (FYI... fuel_auth is loaded in the hooks)
 		$language = $this->fuel_auth->user_data('language');
 
-		// in case the language field doesn't exist... due to older fersions'
+		// in case the language field doesn't exist... due to older versions'
 		if (empty($language) OR !is_string($language)) $language = $this->config->item('language');
 		
 		// load this language file first because fuel_modules needs it
@@ -64,7 +65,7 @@ class Fuel_base_controller extends CI_Controller {
 		
 		// set up default variables
 		$load_vars = array(
-			'js' => '', 
+			'js' => array(), 
 			'css' => $this->_load_css(),
 			'js_controller_params' => array(), 
 			'keyboard_shortcuts' => $this->config->item('keyboard_shortcuts', 'fuel'),
@@ -79,6 +80,8 @@ class Fuel_base_controller extends CI_Controller {
 			$load_vars['session_key'] = $this->fuel_auth->get_session_namespace();
 		}
 
+		$this->js_controller_path = js_path('', FUEL_FOLDER);
+
 		$this->load->vars($load_vars);
 		$this->_load_js_localized();
 		
@@ -89,7 +92,7 @@ class Fuel_base_controller extends CI_Controller {
 				'css' => 'css/',
 				'js' => 'js/',
 			);
-
+		
 		$this->_last_page();
 		
 	}
@@ -97,7 +100,7 @@ class Fuel_base_controller extends CI_Controller {
 	{
 		// set no cache headers to prevent back button problems in FF
 		$this->_no_cache();
-		
+
 		// load this after the the above because it needs a database connection. Avoids a database connection error if there isn't one'
 		$this->load->module_library(FUEL_FOLDER, 'fuel_auth');
 		
@@ -105,11 +108,10 @@ class Fuel_base_controller extends CI_Controller {
 		if (!$this->fuel_auth->is_logged_in() OR !is_fuelified())
 		{
 			$login = $this->config->item('fuel_path', 'fuel').'login';
-			$cookie = array(
-				'name' => $this->fuel_auth->get_fuel_trigger_cookie_name(), 
-				'path' => WEB_PATH
-			);
-			delete_cookie($cookie);
+			
+			// logout officially to unset the cookie data
+			$this->fuel_auth->logout();
+			
 			if (!is_ajax())
 			{
 				redirect($login.'/'.uri_safe_encode($this->uri->uri_string()));
@@ -230,7 +232,6 @@ class Fuel_base_controller extends CI_Controller {
 			}
 		}
 		
-		
 		// automatically include modules if set to AUTO
 		if (is_string($nav['modules']) AND strtoupper($nav['modules']) == 'AUTO')
 		{
@@ -244,14 +245,20 @@ class Fuel_base_controller extends CI_Controller {
 				{
 					// if (in_array($key, $this->config->item('modules_allowed', 'fuel')))
 					// {
-						if (!empty($module['module_name']))
-						{
-							$nav['modules'][$key] = $module['module_name'];
-						}
-						else
-						{
-							$nav['modules'][$key] = humanize($key);
-						}
+					if (isset($module['hidden']) AND $module['hidden'] === TRUE)
+					{
+						continue;
+					}
+					
+					
+					if (!empty($module['module_name']))
+					{
+						$nav['modules'][$key] = $module['module_name'];
+					}
+					else
+					{
+						$nav['modules'][$key] = humanize($key);
+					}
 					// }
 				}
 				
@@ -297,7 +304,7 @@ class Fuel_base_controller extends CI_Controller {
 		return $css;
 	}
 
-	// load the css files for the admin include from other modules
+	// load the language files for the admin include from other modules
 	protected function _load_languages()
 	{
 		$modules = $this->config->item('modules_allowed', 'fuel');
@@ -331,7 +338,7 @@ class Fuel_base_controller extends CI_Controller {
 				$page_segs[] = $seg;
 			}
 		}
-		$page_title = 'FUEL CMS : '.implode(' : ', $page_segs);
+		$page_title = lang('fuel_page_title').' : '.implode(' : ', $page_segs);
 		return $page_title;
 	}
 	

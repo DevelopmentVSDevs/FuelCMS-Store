@@ -4,7 +4,7 @@ date_default_timezone_set('America/Los_Angeles');
 
 // used for development and testing
 $config['dev_mode'] = TRUE;
-$config['dev_email'] = 'josh@halogencreative.com';
+$config['dev_email'] = '';
 
 // for debugging... there is a hook in place to turn this on
 $config['enable_profiler'] = FALSE;

@@ -29,7 +29,7 @@
 			<td><strong>id</strong></td>
 			<td>None</td>
 			<td>None</td>
-			<td>ID to be used for the form</td>
+			<td>ID to be used for the containing table or id</td>
 		</tr>
 		<tr>
 			<td><strong>css_class</strong></td>
@@ -390,6 +390,9 @@ $this->form_builder->render_table($field);
 <p class="important">Although the following functions can be used, it is important to note that the <dfn>render</dfn> methods above
 will call the approprate create field function based on the type of the field and therefore, these functions are rarely used.</p>
 
+<h2>$this->form_builder->clear()</h2>
+<p>Resets the html and fields applied to the current instance.</p>
+
 <h2>$this->form_builder->create_field(<var>params</var>, <var>[normalize]</var>)</h2>
 <p>Looks at the field type attribute and determines which form field to render.
 The <dfn>$normalize</dfn> value is optional and will normalize the params to a common array structure. Default is <dfn>TRUE</dfn>
@@ -419,6 +422,22 @@ $this->form_builder->create_label($params);
 <pre class="brush: php">
 $params = array('name' => 'name', 'label' => 'Full Name', 'required' => TRUE);
 $this->form_builder->create_text($params);
+</pre>
+
+<h2>$this->form_builder->create_submit(<var>params</var>)</h2>
+<p>Creates a submit button.</p>
+
+<pre class="brush: php">
+$params = array('value' => 'My Submit');
+$this->form_builder->create_submit($params);
+</pre>
+
+<h2>$this->form_builder->create_button(<var>params</var>)</h2>
+<p>Creates a button. The <dfn>use_input</dfn> parameter determines whether to use the input type of button or to use the &lt;button&gt; tag.</p>
+
+<pre class="brush: php">
+$params = array('value' => 'My Button', 'use_input' => FALSE);
+$this->form_builder->create_button($params);
 </pre>
 
 
@@ -587,5 +606,5 @@ $this->form_builder->set_validator($validator);
 
 <pre class="brush: php">
 $order = array('name', 'email', 'password');
-$this->form_builder->set_field_order(<var>order_arr</var>);
+$this->form_builder->set_field_order($order);
 </pre>

@@ -45,7 +45,7 @@ class MY_Model extends CI_Model {
 	public $auto_date_add = array('date_added', 'entry_date'); // field names to automatically set the date when the value is NULL
 	public $auto_date_update = array('last_modified', 'last_updated'); // field names to automatically set the date on updates
 	public $date_use_gmt = FALSE; // datetime method
-	public $default_date = '0000-00-00'; // default date value that get's passed to the model on save
+	public $default_date = 0; // default date value that get's passed to the model on save. Using 0000-00-00 will not work if it is a required field since it is not seen as an empty value
 	public $auto_trim = TRUE; // will trim on clean
 	public $auto_encode_entities = TRUE; // automatically encode html entities 
 	public $xss_clean = FALSE; // automatically run the xss_clean
@@ -282,14 +282,31 @@ class MY_Model extends CI_Model {
 		}
 		
 		//This array holds all result data
+		$result_objects = $this->map_query_records($query, $assoc_key);
+
+		$query->free_result();
+		$this->last_data_set = new Data_set($result_objects, $force_array);
+		return $this->last_data_set;
+	}
+	
+	// --------------------------------------------------------------------
+	
+	/**
+	 * Maps a query result object to an array of record objects
+	 *
+	 * @access	public
+	 * @param	object	the query object
+	 * @param	string	the field name to be used the key value
+	 * @return	array
+	 */	
+	function map_query_records($query, $assoc_key = NULL)
+	{
 		$result_objects = array();
+		
 		$fields = $query->list_fields();
 		foreach ($query->result_array() as $row) 
 		{
-			$record_class = $this->record_class_name();
-			$record = new $record_class();
-			$record->initialize($this, $fields);
-			$record->fill($row);
+			$record = $this->map_to_record_class($row, $fields);
 			if (!empty($assoc_key))
 			{
 				$result_objects[$row[$assoc_key]] = $record;
@@ -299,9 +316,30 @@ class MY_Model extends CI_Model {
 				$result_objects[] = $record;
 			}
 		}
-		$query->free_result();
-		$this->last_data_set = new Data_set($result_objects, $force_array);
-		return $this->last_data_set;
+		return $result_objects;
+	}
+	
+	// --------------------------------------------------------------------
+	
+	/**
+	 * Maps an associative record array to a record object
+	 *
+	 * @access	public
+	 * @param	array	field values
+	 * @param	array	all the fields available for the object
+	 * @return	array
+	 */	
+	function map_to_record_class($row, $fields = NULL)
+	{
+		if (empty($fields))
+		{
+			$fields = array_keys($row);
+		}
+		$record_class = $this->record_class_name();
+		$record = new $record_class();
+		$record->initialize($this, $fields);
+		$record->fill($row);
+		return $record;
 	}
 	
 	// --------------------------------------------------------------------
@@ -357,6 +395,7 @@ class MY_Model extends CI_Model {
 		$where = $this->_safe_where($where);
 		if (!empty($where)) $this->db->where($where);
 		if (!empty($order_by)) $this->db->order_by($order_by);
+		$this->db->limit(1);
 		$query = $this->get(FALSE, $return_method);
 		if ($return_method == 'query') return $query;
 		return $query->result();
@@ -508,25 +547,8 @@ class MY_Model extends CI_Model {
 
 			// merge params with defaults
 			$params = array_merge($defaults, $params);
-
-			// now merge params with model specific sql if it exists
-			foreach($defaults2 as $key => $val)
-			{
-				if (!empty($this->sql[$val])){
-					if (is_array($this->sql[$val]) AND is_array($params[$val]))
-					{
-						$params[$val] = array_merge($this->sql[$val], $params[$val]);
-					} 
-					else if (empty($params[$val]))
-					{
-						$params[$val] = $this->sql[$val];
-					}
-				}
-			}
-
-			// add select as string instead of array like above 
-			if (!empty($this->sql['select'])) $params['select'] = $params['select'].', '.$this->sql['select'];
-
+			
+			// add joins
 			if (!empty($params['join'][0]))
 			{
 				$join_select = '';
@@ -552,7 +574,10 @@ class MY_Model extends CI_Model {
 			if (!empty($params['join_select'])) $this->db->select($join_select, FALSE);
 
 			// from
-			$this->db->from($params['from']);
+			if ($params['from'] != $this->table_name)
+			{
+				$this->db->from($params['from']);
+			}
 
 			// loop through list above to set params
 			foreach($defaults2 as $val)
@@ -733,26 +758,40 @@ class MY_Model extends CI_Model {
 				$values[$key] = ($this->auto_trim) ? trim($values[$key]) : $values[$key];
 			}
 		}
-		
+
 		// process linked fields
 		$values = $this->process_linked($values);
 		
 		foreach ($fields as $key => $field)
 		{
-			
-			// make it easier for dates
-			if (($field['type'] == 'datetime'))
+			if  ($field['type'] == 'time')
 			{
+				if (isset($values[$key.'_hour']) AND is_numeric($values[$key.'_hour']))
+				{
+					if (empty($values[$key]) OR (int)$values[$key] == 0) $values[$key] = $date_func('H:i:s');
+					//the js seem like only supply minute field, assign 00 for sec now
+					if (empty($values[$key.'_sec']))$values[$key.'_sec'] = '00';
+					$values[$key] = date("H:i:s", strtotime(@$values[$key.'_hour'].':'.@$values[$key.'_min'].':'.@$values[$key.'_sec'].' '.@$values[$key.'_am_pm']));
+				}
+			}
+			// make it easier for dates
+			else if ($field['type'] == 'datetime')
+			{
+				
+				if (empty($values[$key]) OR (int)$values[$key] == 0) $values[$key] = $this->default_date;
 				if (isset($values[$key.'_hour']))
 				{
-					if (empty($values[$key]) OR (int)$values[$key] == 0) $values[$key] = $this->default_date;
-					$values[$key] = english_date_to_db_format($values[$key], @$values[$key.'_hour'], @$values[$key.'_min'], @$values[$key.'_sec'], @$values[$key.'_am_pm']);
+					if (!empty($values[$key]))
+					{
+						$values[$key] = english_date_to_db_format($values[$key], @$values[$key.'_hour'], @$values[$key.'_min'], @$values[$key.'_sec'], @$values[$key.'_am_pm']);
+					}
+					
 				}
 			}
 			else if ($field['type'] == 'date')
 			{
 				if (empty($values[$key]) OR (int)$values[$key] == 0) $values[$key] = $this->default_date;
-				if (isset($values[$key]) AND !is_date_db_format($values[$key])) $values[$key] = english_date_to_db_format($values[$key]);
+				if (!empty($values[$key]) AND !is_date_db_format($values[$key])) $values[$key] = english_date_to_db_format($values[$key]);
 			}
 			
 			$date_func = ($this->date_use_gmt) ? 'gmdate' : 'date';
@@ -760,6 +799,7 @@ class MY_Model extends CI_Model {
 			// create dates for date added and last updated fields automatically
 			if (($field['type'] == 'datetime' OR $field['type'] == 'timestamp' OR $field['type'] == 'date') AND in_array($key, $this->auto_date_add))
 			{
+				
 				$test_date = (isset($values[$key])) ? (int) $values[$key] : 0;
 
 				// if no key field then we assume it is a new save and so we add the date if it's empty'
@@ -772,15 +812,15 @@ class MY_Model extends CI_Model {
 			{
 				$values[$key] = ($field['type'] == 'date') ? $date_func('Y-m-d') : $date_func('Y-m-d H:i:s');
 			} 
-
 			if (isset($values[$key]))
 			{
+				
 				// format dates
 				if (!in_array($key, $this->auto_date_add))
 				{	
 					if ($field['type'] == 'datetime' OR $field['type'] == 'timestamp' OR $field['type'] == 'date')
 					{
-						if (strncmp($values[$key], '0000', 4) !== 0)
+						if (isset($values[$key]) AND strncmp($values[$key], '0000', 4) !== 0)
 						{
 							if ($field['type'] == 'date')
 							{
@@ -820,6 +860,7 @@ class MY_Model extends CI_Model {
 				$clean[$key] = $values[$key];
 			}
 		}
+
 		$this->cleaned_data = $clean;
 		return $clean;
 	}
@@ -956,6 +997,10 @@ class MY_Model extends CI_Model {
 					// execute on_insert/update hook methods
 					if (!$this->_has_key_field_value($values) AND $this->db->insert_id())
 					{
+						if (is_string($this->key_field))
+						{
+							$values[$this->key_field] = $this->db->insert_id();
+						}
 						$this->on_after_insert($values);
 					}
 					else
@@ -982,6 +1027,10 @@ class MY_Model extends CI_Model {
 					$values = $this->on_before_save($values);
 					$values = $this->on_before_insert($values);
 					$this->db->insert($this->table_name, $values);
+					if (is_string($this->key_field))
+					{
+						$values[$this->key_field] = $this->db->insert_id();
+					}
 					$this->on_after_insert($values);
 					if (is_a($record, 'Data_record')) $record->on_after_insert($values);
 				}
@@ -1008,10 +1057,6 @@ class MY_Model extends CI_Model {
 			if ($this->db->insert_id())
 			{
 				$return = $this->db->insert_id();
-				if (is_string($this->key_field))
-				{
-					$values[$this->key_field] = $return;
-				}
 			}
 			else
 			{
@@ -1112,6 +1157,10 @@ class MY_Model extends CI_Model {
 		$this->_check_readonly();
 		$values = $this->on_before_insert($values);
 		$return = $this->db->insert($this->table_name, $values);
+		if (is_string($this->key_field))
+		{
+			$values[$this->key_field] = $this->db->insert_id();
+		}
 		$this->on_after_insert($values);
 		return $return;
 	}
@@ -1190,7 +1239,6 @@ class MY_Model extends CI_Model {
 		
 		// delete all has and belongs to many
 		$CI =& get_instance();
-		$id_field = $this->key_field();
 		$id = $this->_determine_key_field_value($where);
 		if (!empty($id))
 		{
@@ -1623,7 +1671,7 @@ class MY_Model extends CI_Model {
 	 */	
 	public function remove_all_validation()
 	{
-		$this->validator->reset();
+		$this->validator->reset(TRUE);
 		$this->rules = array();
 	}
 	
@@ -1736,12 +1784,17 @@ class MY_Model extends CI_Model {
 			{
 				foreach($related as $key => $val)
 				{
+					// related  need to be loaded using slash syntax if model belongs in another module (e.g. my_module/my_model)
+					$related_name = end(explode('/', $key));
 					$related_model = $this->load_model($key.'_model');
-					$lookup_model = $this->load_model($val);
+					$related_model_name = $related_name.'_model';
 					
-					$options = $CI->$related_model->options_list();
-					$values = (!empty($values['id'])) ? array_keys($CI->$lookup_model->find_all_array_assoc($CI->$related_model->short_name(TRUE, TRUE).'_id', array($this->short_name(TRUE, TRUE).'_id' => $values[$key_field]))) : array();
-					$fields[$key] = array('label' => ucfirst($key), 'type' => 'array', 'class' => 'add_edit '.$key, 'options' => $options, 'value' => $values, 'mode' => 'multi');
+					$lookup_name = end(explode('/', $val));
+					$lookup_model = $this->load_model($val);
+
+					$options = $CI->$related_model_name->options_list();
+					$field_values = (!empty($values['id'])) ? array_keys($CI->$lookup_name->find_all_array_assoc($CI->$related_model_name->short_name(TRUE, TRUE).'_id', array($this->short_name(TRUE, TRUE).'_id' => $values[$key_field]))) : array();
+					$fields[$key] = array('label' => ucfirst($related_name), 'type' => 'array', 'class' => 'add_edit '.$key, 'options' => $options, 'value' => $field_values, 'mode' => 'multi');
 				}
 			}
 		}
@@ -1805,17 +1858,15 @@ class MY_Model extends CI_Model {
 	// --------------------------------------------------------------------
 
 	/**
-	 * Set the default return type
+	 * Get the default return type
 	 *
 	 * @access	public
-	 * @param	string	return type (object, array, query, auto)
-	 * @return	void
+	 * @return	mixed
 	 */	
-	public function get_return_method($return_method)
+	public function get_return_method()
 	{
 		return $this->return_method;
 	}
-	
 	
 	// --------------------------------------------------------------------
 	
@@ -2652,7 +2703,7 @@ Class Data_record {
 		$key_field = (array) $this->_parent_model->key_field();
 		foreach($key_field as $key)
 		{
-			$where[$key] = $values;
+			$where[$key] = $this->$key;
 		}
 		
 		$data = $this->_parent_model->find_one($where, NULL, 'array');

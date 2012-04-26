@@ -30,11 +30,13 @@ jQuery.checksave = function() {
 
 jQuery.removeChecksave = function(){
 	window.onbeforeunload = null;
-}
+};
 
 jQuery.changeChecksaveValue = function(inputKey, val){
-	window._pageVals[inputKey] = val;
-}
+	if (window._pageVals){
+		window._pageVals[inputKey] = val;
+	}
+};
 
 jQuery.checkSaveChange = function(){
 	var msg;
@@ -46,7 +48,10 @@ jQuery.checkSaveChange = function(){
 				var cmp = new Array();
 				var selector = 'input:text[name="' + fieldName + '"],input:checked[name="' + fieldName + '"],textarea[name="' + fieldName + '"],select[name="' + fieldName + '"]';
 				$(selector).each(function(i){
-					cmp.push($(this).val().toString());
+					var val = $(this).val();
+					if (val){
+						cmp.push(val.toString());
+					}
 				});
 				if (window._pageVals[fieldName] && cmp.toString() != window._pageVals[fieldName].toString()){
 					msg = changedMsg;
@@ -60,4 +65,4 @@ jQuery.checkSaveChange = function(){
 		}
 	});
 	return msg;
-}
+};
