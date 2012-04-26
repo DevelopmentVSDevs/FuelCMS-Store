@@ -13,10 +13,21 @@
 	
 		<div class="span10">
 		
-			<? if( $store ) : ?>
-				<pre>
-				<? print_r($store); ?>
-				</pre>
+			<? if( $store ): ?>
+            <? foreach($store->catalog as $catalog): ?>
+                <?='Catalog: ' . $catalog->name?> 
+                <? echo "<br>" ?>
+                <? foreach($catalog->category as $category): ?>
+                    <?='Category: ' . $category->name?>  
+                    <? echo "<br>" ?>
+                    <? if(isset($category->product)): ?>
+                        <? foreach($category->product as $product): ?>
+                            <?='Product: ' . $product->name?>  
+                            <? echo "<br>" ?>
+                        <? endforeach ?>
+                    <? endif ?>
+                <? endforeach ?>
+            <? endforeach ?>
 			<? endif; ?>
 
 
